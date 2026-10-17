@@ -3,6 +3,7 @@ name: Daily prices
 on:
   schedule:
     - cron: '30 20 * * 1-5'   # 화~토 05:30 KST (미국 장 마감 직후, 06:00 매크로 텔레그램 전)
+    - cron: '30 21 * * 1-5'   # 화~토 06:30 KST — 11월 미국 서머타임 종료 후(장 마감 21:00 UTC) 대비 재실행
   workflow_dispatch:
   push:
     branches: [main]
