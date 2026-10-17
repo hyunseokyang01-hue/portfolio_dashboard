@@ -152,7 +152,7 @@ svg text{font-family:inherit}
 <div class="panel" style="display:block;padding-top:0"><div class="disclaimer">
 본인 의사결정용 대시보드다. 투자 추천이 아니며 자동 판정은 사전에 정한 규칙을 기계적으로 적용한 결과다.
 시세 출처: 한온시스템 = KRX 대시보드(FLOG 종가, 일간), 미국 종목 = 반도체 대시보드(data.json, 주간), 환율·지수 = 매크로 브리핑 구글시트(일간).
-SOXL 등 소스에 없는 종목은 HOLDINGS의 manualPrice를 쓴다.
+그 밖의 미국 종목(TER·WOLF·ETF·SOXL 등) = prices.json(GitHub Actions가 평일 아침 Yahoo에서 갱신). 모두 실패하면 HOLDINGS의 manualPrice.
 </div></div>
 
 <script>
@@ -217,12 +217,13 @@ const CONFIG = {
 // 보유 종목. src: semi(반도체 대시보드 시세) | krx(KRX 대시보드 시세) | manual(manualPrice 사용)
 // status: held(보유) | planned(계획, 평가 제외)
 const HOLDINGS = [
-  // 2026-10-17 취합 (증권사별 내역 합산, 평단 = 가중평균 USD). manualPrice/manualDate = 2026-10-16 종가(Yahoo)
+  // 2026-10-17 취합 (증권사별 내역 합산, 평단 = 가중평균 USD). 시세는 KRX·반도체 대시보드·prices.json(Yahoo 일간) 중 최신값 자동 사용
+  // manualPrice/manualDate = 2026-10-16 종가 — 자동 시세가 없을 때만 쓰이는 대체값
   // src "semi": 반도체 대시보드 시세가 manualDate보다 새로우면 그 값을 사용
   {name:"Intel", ticker:"INTC", block:"SEMI", src:"semi", ccy:"USD", qty:184.808053, avg:112.9933, manualPrice:89.85, manualDate:"20261016", status:"held", note:"2개 계좌 합산"},
   {name:"Micron Technology", ticker:"MU", block:"SEMI", src:"semi", ccy:"USD", qty:1.002, avg:1237.958, manualPrice:878.84, manualDate:"20261016", status:"held", note:"2개 계좌 합산"},
-  {name:"Teradyne", ticker:"TER", block:"SEMI", src:"manual", ccy:"USD", qty:6.12115, avg:481.18, manualPrice:325.00, manualDate:"20261016", status:"held", note:"반도체 대시보드 미추적"},
-  {name:"Wolfspeed", ticker:"WOLF", block:"SEMI", src:"manual", ccy:"USD", qty:90, avg:37.57, manualPrice:23.22, manualDate:"20261016", status:"held", note:"반도체 대시보드 미추적"},
+  {name:"Teradyne", ticker:"TER", block:"SEMI", src:"manual", ccy:"USD", qty:6.12115, avg:481.18, manualPrice:325.00, manualDate:"20261016", status:"held", note:"Yahoo 일간 (prices.json)"},
+  {name:"Wolfspeed", ticker:"WOLF", block:"SEMI", src:"manual", ccy:"USD", qty:90, avg:37.57, manualPrice:23.22, manualDate:"20261016", status:"held", note:"Yahoo 일간 (prices.json)"},
   {name:"Invesco S&P500 고배당 저변동", ticker:"SPHD", block:"USETC", src:"manual", ccy:"USD", qty:4, avg:51.08, manualPrice:50.61, manualDate:"20261016", status:"held"},
   {name:"Vanguard Total Stock Market", ticker:"VTI", block:"USETC", src:"manual", ccy:"USD", qty:0.221, avg:375.62, manualPrice:374.07, manualDate:"20261016", status:"held"},
   {name:"Vanguard S&P 500", ticker:"VOO", block:"USETC", src:"manual", ccy:"USD", qty:0.106, avg:702.59, manualPrice:701.61, manualDate:"20261016", status:"held"},
@@ -263,9 +264,10 @@ const SRC = {
   krx:   {name:"KRX 대시보드", url:"https://hyunseokyang01-hue.github.io/krx-dashboard/kospi.html", page:"https://hyunseokyang01-hue.github.io/krx-dashboard/kospi.html", maxAgeDays:4},
   semi:  {name:"반도체 대시보드", url:"https://hyunseokyang01-hue.github.io/semi-dashboard/data.json", page:"https://hyunseokyang01-hue.github.io/semi-dashboard/", maxAgeDays:9},
   macro: {name:"매크로 브리핑", url:"https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&sheet=CALENDAR_30", page:"https://macro-briefing.netlify.app", maxAgeDays:4},
+  px:    {name:"시세(Yahoo)", url:"prices.json", maxAgeDays:4},
   anal:  {name:"매크로 분석", url:"https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&sheet=ANALYSIS"}
 };
-const D = {krx:null, semi:null, macro:null, anal:null, err:{}};
+const D = {krx:null, semi:null, macro:null, anal:null, px:null, err:{}};
 
 // ════════════════════════════════════════════════════════════════════
 //  ③ 유틸
@@ -327,7 +329,8 @@ async function loadAll(){
     },
     semi: async () => JSON.parse((await getText(SRC.semi.url, true)).replace(/\bNaN\b/g, 'null')),  // data.json history에 NaN 포함
     macro: async () => gviz(await getText(SRC.macro.url, false)),
-    anal: async () => gviz(await getText(SRC.anal.url, false))
+    anal: async () => gviz(await getText(SRC.anal.url, false)),
+    px: async () => JSON.parse(await getText(SRC.px.url, true))
   };
   const keys = Object.keys(jobs);
   const res = await Promise.allSettled(keys.map(k => jobs[k]()));
@@ -380,8 +383,12 @@ function valuePositions(){
     } else if(h.src === 'semi'){
       const t = semiTicker(h.ticker); px = t ? t.price : null; pxD = t ? t.date.replace(/-/g,'') : null;
     }
-    // 수동 시세가 더 최신이면 수동값 사용
-    if(h.manualPrice != null && (px == null || (h.manualDate && (!pxD || h.manualDate > pxD)))){ px = h.manualPrice; pxD = h.manualDate || CONFIG.updated.replace(/-/g,''); h = Object.assign({}, h, {usedManual:true}); }
+    // 후보 중 가장 최신 시세 사용: 소스(KRX·반도체) / prices.json(Yahoo, Actions 일간) / 수동
+    let via = px != null ? h.src : null;
+    const yq = D.px && D.px.prices ? D.px.prices[h.ticker] : null;
+    if(yq && yq.price != null && (px == null || !pxD || yq.date > pxD)){ px = yq.price; pxD = yq.date; via = 'yahoo'; }
+    if(h.manualPrice != null && (px == null || (h.manualDate && (!pxD || h.manualDate > pxD)))){ px = h.manualPrice; pxD = h.manualDate || CONFIG.updated.replace(/-/g,''); via = 'manual'; }
+    h = Object.assign({}, h, {via, usedManual: via === 'manual'});
     if(px == null){ srcOk = false; px = h.avg; }
     const rate = h.ccy === 'USD' ? FX : 1;
     const value = h.status === 'held' ? h.qty * px * rate : 0;
@@ -451,7 +458,8 @@ function srcStatus(){
   const items = [
     ['krx', H ? H.lastDate : null],
     ['semi', D.semi ? String(D.semi.updatedAt).slice(0,10).replace(/-/g,'') : null],
-    ['macro', macroLast('usdkrw') ? macroLast('usdkrw').d : null]
+    ['macro', macroLast('usdkrw') ? macroLast('usdkrw').d : null],
+    ['px', D.px && D.px.prices && D.px.prices['KRW=X'] ? D.px.prices['KRW=X'].date : (D.px ? Object.values(D.px.prices||{}).map(x=>x.date).sort().pop() : null)]
   ];
   return items.map(([k, d]) => {
     if(D.err[k]) return '<span class="src-pill err">' + SRC[k].name + ' 실패</span>';
@@ -549,7 +557,7 @@ function renderSemi(P){
     kpi('평가 손익', man(val - cost) + '원', cost ? pct((val/cost-1)*100) : '매입 기록 없음', val-cost >= 0 ? 'var(--green)' : 'var(--red)') +
     kpi('USD/KRW', FX.toLocaleString(), '매크로 시트 ' + (macroLast('usdkrw') ? fd8(macroLast('usdkrw').d) : '대체값'), 'var(--gold)');
   document.getElementById('semiHold').innerHTML = '<div class="tw"><table><tr><th>종목</th><th>상태</th><th>수량</th><th>평단</th><th>현재가</th><th>시세일</th><th>평가액(원)</th><th>손익</th><th>메모</th></tr>' +
-    semiPos.map(p => '<tr><td class="l">' + esc(p.name) + (p.ticker && p.ticker.length < 6 ? ' <span class="mu">' + p.ticker + '</span>' : '') + '</td><td class="c">' + badge(p.status==='held'?'green':'gray', p.status==='held'?'보유':'계획') + '</td><td>' + (p.qty||0).toLocaleString() + '</td><td>' + (p.avg ? (p.ccy==='USD'?'$':'') + p.avg.toLocaleString() : '—') + '</td><td>' + (p.srcOk ? (p.ccy==='USD'?'$':'') + Number(p.px).toLocaleString() : '<span class="mu">시세 없음</span>') + '</td><td class="c">' + fd8(p.pxD) + (p.usedManual ? ' <span class="mu">수동</span>' : '') + '</td><td>' + won(p.value) + '</td><td class="' + cls(p.pnl) + '">' + (p.cost ? man(p.pnl) + ' (' + pct(p.pnlPct) + ')' : '—') + '</td><td class="l small">' + esc(p.note||'') + '</td></tr>').join('') + '</table></div>';
+    semiPos.map(p => '<tr><td class="l">' + esc(p.name) + (p.ticker && p.ticker.length < 6 ? ' <span class="mu">' + p.ticker + '</span>' : '') + '</td><td class="c">' + badge(p.status==='held'?'green':'gray', p.status==='held'?'보유':'계획') + '</td><td>' + (p.qty||0).toLocaleString() + '</td><td>' + (p.avg ? (p.ccy==='USD'?'$':'') + p.avg.toLocaleString() : '—') + '</td><td>' + (p.srcOk ? (p.ccy==='USD'?'$':'') + Number(p.px).toLocaleString() : '<span class="mu">시세 없음</span>') + '</td><td class="c">' + fd8(p.pxD) + (p.via === 'manual' ? ' <span class="mu">수동</span>' : (p.via === 'yahoo' ? ' <span class="mu">Yahoo</span>' : '')) + '</td><td>' + won(p.value) + '</td><td class="' + cls(p.pnl) + '">' + (p.cost ? man(p.pnl) + ' (' + pct(p.pnlPct) + ')' : '—') + '</td><td class="l small">' + esc(p.note||'') + '</td></tr>').join('') + '</table></div>';
   if(!D.semi){ document.getElementById('semiSignals').innerHTML = ''; return; }
   const sp = D.semi.scenarioProbs, is = D.semi.intelScenario || {};
   const st = s => s === 'green' ? badge('green','green') : (s === 'red' ? badge('red','red') : badge('amber', s));
