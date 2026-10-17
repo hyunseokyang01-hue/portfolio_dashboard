@@ -244,6 +244,7 @@ const RULE_LOG = [
   {date:"2026-10-17", rule:"배분안", change:"반도체 1.8억 · 한온 1.0억 · 예탁금 0.1억 제안 (7월 계획: 종목 15% 상한, 현금 20%)", reason:"검토 중 — 확정 시 사유 기록"}
 ];
 const EVENTS = [
+  {date:"2026-10-19", title:"반도체 대시보드 주간 갱신 (10/16 종가 반영)", kind:"데이터"},
   {date:"2026-10-26", title:"세입자 보증금 2.5억 유입", kind:"현금"},
   {date:"2026-11-05", title:"한온시스템 3Q 잠정실적 발표", kind:"한온"},
   {date:"2027-01-11", title:"한앤코 풋옵션 행사기간 개시 (~02.11, 5,200원)", kind:"한온"},
@@ -515,6 +516,15 @@ function signals(P){
     out.push({area:'한온', name:'매물대 ' + T.resistLow.toLocaleString() + '원 / 풋옵션선 ' + T.putLine.toLocaleString() + '원', k: px >= T.putLine ? 'amber' : (px >= T.resistLow ? 'amber' : 'gray'), st: px >= T.putLine ? '풋옵션선 도달' : (px >= T.resistLow ? '매도 검토 구간' : '아래'), why:'상단 매물·오버행 구간 진입 여부'});
     out.push({area:'한온', name:'공매도 잔고 추세', k: H.sChg > 0 ? 'amber' : 'green', st: H.sChg > 0 ? '증가' : '감소/횡보', why: H.sBal ? '잔고 ' + H.sBal.toLocaleString() + '주 (' + fd8(H.sBalD) + '), ' + fd8(H.sFrom) + ' 대비 ' + man(H.sChg) + '주' : '데이터 없음'});
     out.push({area:'한온', name:'3Q 잠정실적 (11/5)', k: T.q3Status === 'pass' ? 'green' : (T.q3Status === 'fail' ? 'red' : 'gray'), st: T.q3Status === 'pass' ? '확인' : (T.q3Status === 'fail' ? '전제 훼손' : '대기'), why:'흑자전환 경로 확인 — 발표 후 CONFIG.hanonTriggers.q3Status 갱신'});
+  }
+  const ks = macroSeries('kospi'), ss = macroSeries('semicon');
+  if(ks.length > 5){
+    const k30 = (ks[ks.length-1].v / Math.max(...ks.map(x => x.v)) - 1);
+    out.push({area:'매크로', name:'코스피 30일 고점 대비', k: k30 <= -0.10 ? 'red' : (k30 <= -0.05 ? 'amber' : 'green'), st: pp(k30), why:'원칙 9(지수 급락 시 추가매수 고려)와 7월 규칙(포트 −20% 시 신규 매수 중단)이 동시에 걸리는 구간인지 확인 — ' + fd8(ks[ks.length-1].d)});
+  }
+  if(ss.length > 5){
+    const s30 = (ss[ss.length-1].v / Math.max(...ss.map(x => x.v)) - 1);
+    out.push({area:'매크로', name:'반도체 지수 30일 고점 대비', k: s30 <= -0.10 ? 'red' : (s30 <= -0.05 ? 'amber' : 'green'), st: pp(s30), why:'반도체 블록 추가 집행 타이밍 참고 (시트 semicon, ' + fd8(ss[ss.length-1].d) + ')'});
   }
   if(D.semi){
     const sp = D.semi.scenarioProbs, bear = sp.Bear + sp.BlackSwan;
