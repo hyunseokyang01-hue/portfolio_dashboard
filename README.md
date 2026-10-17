@@ -10,7 +10,7 @@
 | KRX 대시보드 `krx-dashboard/kospi.html` | 일간 | 한온시스템·한국토지신탁 종가(FLOG), 연기금 LOG, 외국인·공매도 |
 | 반도체 대시보드 `semi-dashboard/data.json` | 주간 (월) | INTC·MU 시세, 시나리오 확률, 사이클 신호, Intel 시나리오 |
 | 매크로 브리핑 구글시트 (CALENDAR_30, ANALYSIS) | 일간 | USD/KRW, 반도체 지수, 나스닥, 코스피, 미 10년물, 분석 텍스트 |
-| `prices.json` (이 저장소, GitHub Actions `prices.yml`) | 평일 07:30 KST | HOLDINGS의 모든 미국 종목 종가 (Yahoo Finance via yfinance) |
+| `prices.json` (이 저장소, GitHub Actions `prices.yml`) | 평일 05:30 KST | HOLDINGS의 모든 미국 종목 종가 (Yahoo Finance via yfinance) |
 
 종목별로 위 소스 중 **가장 최신 날짜의 시세**를 쓴다. HOLDINGS에 미국 종목을 추가하면 다음 실행부터 자동으로 시세를 받는다(index.html 수정 시 즉시 1회 실행).
 
