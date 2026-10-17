@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>포트폴리오 대시보드</title>
+<style>
+:root{
+  --bg:#0D1B2A;--navy:#1B2E4B;--navy2:#162543;--gold:#C9A84C;--gold2:#F0C040;
+  --white:#FFFFFF;--gray:#B0BEC5;--dgray:#546E7A;--border:#1E3560;
+  --hon:#60D0C0;--semi:#5B9BD5;--lev:#A87CCA;--cash:#8A9BB0;
+  --green:#4CAF50;--red:#FF5252;--amber:#FF9800;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--white);font-family:'Segoe UI','Apple SD Gothic Neo','Malgun Gothic',Arial,sans-serif;min-height:100vh}
+header{background:var(--navy2);padding:14px 24px;border-bottom:2px solid var(--gold);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.hbar{width:5px;height:38px;background:var(--gold);border-radius:2px;flex-shrink:0}
+header h1{font-size:1.18rem;font-weight:700}
+header .sub{font-size:.74rem;color:var(--gray);margin-top:3px;line-height:1.6}
+.src-pill{display:inline-block;border:1px solid var(--border);border-radius:10px;padding:1px 8px;margin:2px 4px 0 0;font-size:.68rem}
+.src-pill.ok{color:var(--green);border-color:#2E5E36}.src-pill.stale{color:var(--amber);border-color:#6A4A12}.src-pill.err{color:var(--red);border-color:#6A2020}
+.tabs{display:flex;flex-wrap:wrap;gap:3px;padding:14px 24px 0;border-bottom:1px solid var(--border)}
+.tab{padding:8px 15px;border:1px solid var(--border);border-bottom:none;border-radius:5px 5px 0 0;cursor:pointer;font-size:.8rem;color:var(--gray);background:var(--navy);white-space:nowrap}
+.tab:hover,.tab.active{background:var(--gold);color:var(--bg);font-weight:700}
+.panel{display:none;padding:20px 24px;max-width:1280px}
+.panel.active{display:block}
+.ptitle{font-size:.92rem;color:var(--gold);font-weight:700;margin-bottom:6px}
+.pnote{font-size:.74rem;color:var(--dgray);margin-bottom:12px;line-height:1.6}
+.sec{font-size:.86rem;font-weight:700;color:var(--gold);margin:22px 0 10px;border-left:3px solid var(--gold);padding-left:.6rem}
+.kpi-row{display:flex;flex-wrap:wrap;gap:10px}
+.kpi{flex:1;min-width:170px;background:linear-gradient(135deg,#0F2035,#162543);border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:8px;padding:.8rem 1rem}
+.kpi .l{font-size:.7rem;color:#78909C;margin-bottom:.3rem}
+.kpi .v{font-size:1.25rem;font-weight:700}
+.kpi .s{font-size:.7rem;color:#78909C;margin-top:.3rem;line-height:1.5}
+table{border-collapse:collapse;width:100%;font-size:.78rem}
+th{background:var(--navy);color:var(--gold);padding:7px 9px;text-align:center;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:6px 9px;border:1px solid var(--border);text-align:right;white-space:nowrap}
+td.l{text-align:left;white-space:normal}td.c{text-align:center}
+.tw{overflow-x:auto;margin-bottom:8px}
+.up{color:var(--green)}.dn{color:var(--red)}.mu{color:var(--dgray)}
+.badge{display:inline-block;border-radius:4px;padding:1px 7px;font-size:.68rem;font-weight:700}
+.b-green{background:#4CAF5022;color:var(--green);border:1px solid var(--green)}
+.b-amber{background:#FF980022;color:var(--amber);border:1px solid var(--amber)}
+.b-red{background:#FF525222;color:var(--red);border:1px solid var(--red)}
+.b-gray{background:#546E7A22;color:var(--gray);border:1px solid var(--dgray)}
+.banner{background:#101F33;border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:6px;padding:.65rem .9rem;margin:.7rem 0;font-size:.76rem;line-height:1.75;color:var(--gray)}
+.alloc{display:flex;height:26px;border-radius:5px;overflow:hidden;border:1px solid var(--border);margin:6px 0 4px}
+.alloc div{display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:#0D1B2A;white-space:nowrap;overflow:hidden}
+.alloc-lbl{font-size:.72rem;color:var(--gray);margin-top:10px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.card{background:#0F2035;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem}
+.card h4{font-size:.8rem;color:var(--gold);margin-bottom:.5rem}
+.small{font-size:.72rem;color:var(--gray);line-height:1.7}
+a{color:var(--hon)}
+svg text{font-family:inherit}
+.disclaimer{margin-top:22px;font-size:.7rem;color:var(--dgray);line-height:1.7;border-top:1px solid var(--border);padding-top:10px}
+@media(max-width:640px){.panel{padding:16px 12px}.tabs{padding:12px 12px 0}header{padding:12px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbar"></div>
+  <div>
+    <h1>포트폴리오 대시보드 — 미국 반도체 · 한온시스템 · 현금흐름</h1>
+    <div class="sub" id="hsub">데이터 불러오는 중…</div>
+  </div>
+</header>
+
+<div class="tabs" id="tabs">
+  <div class="tab active" data-i="0">① 개요</div>
+  <div class="tab" data-i="1">② 미국 반도체</div>
+  <div class="tab" data-i="2">③ 한온시스템</div>
+  <div class="tab" data-i="3">④ 매크로</div>
+  <div class="tab" data-i="4">⑤ 리스크 · 규칙</div>
+  <div class="tab" data-i="5">⑥ 일정 · 보증금</div>
+  <div class="tab" data-i="6">⑦ 보유 기록</div>
+</div>
+
+<div class="panel active" id="p0">
+  <div class="ptitle">① 개요 — 지금 어디에 얼마가 있나</div>
+  <div class="pnote" id="p0note"></div>
+  <div class="kpi-row" id="kpiTop"></div>
+  <div class="sec">배분 — 현재 vs 목표 vs 7월 계획</div>
+  <div id="allocWrap"></div>
+  <div class="sec">오늘의 신호 (자동 판정)</div>
+  <div id="signalWrap"></div>
+  <div class="sec">연동 대시보드</div>
+  <div class="small" id="links"></div>
+</div>
+
+<div class="panel" id="p1">
+  <div class="ptitle">② 미국 주식 — 보유 종목과 반도체 대시보드 신호</div>
+  <div class="pnote" id="p1note"></div>
+  <div class="kpi-row" id="semiKpi"></div>
+  <div class="sec">보유 종목 평가</div>
+  <div id="semiHold"></div>
+  <div class="sec">반도체 대시보드 — 시나리오 · 사이클 · Intel</div>
+  <div class="grid2" id="semiSignals"></div>
+  <div class="sec">관심 종목 16개 (주간)</div>
+  <div class="tw" id="semiTbl"></div>
+</div>
+
+<div class="panel" id="p2">
+  <div class="ptitle">③ 한온시스템 — 포지션 · 연기금 수급 · 무효화 조건</div>
+  <div class="pnote" id="p2note"></div>
+  <div class="kpi-row" id="hanKpi"></div>
+  <div class="sec">연기금 일별 순매수 (최근 30거래일)</div>
+  <div id="hanChart"></div>
+  <div class="sec">진입 전 정한 조건 — 자동 판정</div>
+  <div class="tw" id="hanTrig"></div>
+</div>
+
+<div class="panel" id="p3">
+  <div class="ptitle">④ 매크로 — 포트폴리오에 직접 닿는 지표</div>
+  <div class="pnote" id="p3note"></div>
+  <div class="kpi-row" id="macKpi"></div>
+  <div class="sec">30일 추이</div>
+  <div class="grid2" id="macCharts"></div>
+  <div class="sec">최신 매크로 분석 (매크로 브리핑 ANALYSIS 시트)</div>
+  <div class="banner" id="macText"></div>
+</div>
+
+<div class="panel" id="p4">
+  <div class="ptitle">⑤ 리스크 · 규칙 — 본인 규칙 대비 현재 상태</div>
+  <div class="pnote">규칙은 7월 투자 전략 계획과 투자원칙 12에서 가져왔다. 규칙을 바꾸기로 했다면 아래 CONFIG.rules 값을 고치고 사유를 RULE_LOG에 남긴다.</div>
+  <div class="tw" id="ruleTbl"></div>
+  <div class="sec">스트레스 테스트 — 동시 하락 시 손실과 완충</div>
+  <div class="tw" id="stressTbl"></div>
+  <div class="small" id="stressNote"></div>
+  <div class="sec">규칙 변경 기록</div>
+  <div class="tw" id="ruleLog"></div>
+</div>
+
+<div class="panel" id="p5">
+  <div class="ptitle">⑥ 일정 · 보증금 — 현금이 움직이는 날</div>
+  <div class="pnote">세입자 보증금은 기본 경로에서 다음 계약 보증금으로 반환된다. 포트폴리오가 메울 부분은 역전세(시세 하락분)와 공실 기간이다.</div>
+  <div class="kpi-row" id="leaseKpi"></div>
+  <div class="sec">역전세 커버리지</div>
+  <div class="tw" id="leaseTbl"></div>
+  <div class="sec">일정</div>
+  <div class="tw" id="evTbl"></div>
+</div>
+
+<div class="panel" id="p6">
+  <div class="ptitle">⑦ 보유 기록 — HOLDINGS · TRADES</div>
+  <div class="pnote">이 탭의 숫자는 파일 안 HOLDINGS / CASH / TRADES 배열에서 온다. 체결 후 Claude 세션에 "보유 기록 갱신"을 요청하거나 저장소에서 직접 수정한다.</div>
+  <div class="tw" id="holdTbl"></div>
+  <div class="sec">체결 기록</div>
+  <div class="tw" id="tradeTbl"></div>
+</div>
+
+<div class="panel" style="display:block;padding-top:0"><div class="disclaimer">
+본인 의사결정용 대시보드다. 투자 추천이 아니며 자동 판정은 사전에 정한 규칙을 기계적으로 적용한 결과다.
+시세 출처: 한온시스템 = KRX 대시보드(FLOG 종가, 일간), 미국 종목 = 반도체 대시보드(data.json, 주간), 환율·지수 = 매크로 브리핑 구글시트(일간).
+SOXL 등 소스에 없는 종목은 HOLDINGS의 manualPrice를 쓴다.
+</div></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+//  ① 설정 — 세션에서 갱신하는 값 (보유·현금·규칙·일정)
+// ════════════════════════════════════════════════════════════════════
+const CONFIG = {
+  updated: "2026-10-17",
+  owner: "Hyunseok",
+  fxFallback: 1340.95,               // 매크로 시트 실패 시 USD/KRW
+  inflow: {amount: 250000000, date: "2026-10-26", label: "세입자 보증금 유입"},
+  // 목표 배분 (10/17 제안안). 블록 id는 HOLDINGS.block과 일치
+  target: [
+    {id:"SEMI",  name:"미국 반도체",            amount:180000000, color:"#5B9BD5"},
+    {id:"HANON", name:"한온시스템",             amount:100000000, color:"#60D0C0"},
+    {id:"LEV",   name:"예탁금 · 레버리지 대기", amount:10000000,  color:"#A87CCA"}
+  ],
+  // 블록 메타 (현재 배분 바 표시용)
+  blocks: [
+    {id:"SEMI", name:"미국 반도체", color:"#5B9BD5"},
+    {id:"USETC", name:"미국 지수·기타", color:"#8FB8DE"},
+    {id:"HANON", name:"한온시스템", color:"#60D0C0"},
+    {id:"KRETC", name:"국내 기타", color:"#3DA898"},
+    {id:"LEV", name:"레버리지", color:"#A87CCA"}
+  ],
+  // 7월 투자 전략 계획 (2.4억 기준 비중)
+  julyPlan: [
+    {id:"A", name:"미국 반도체·기술", pct:35, color:"#5B9BD5"},
+    {id:"B", name:"크립토",           pct:25, color:"#F0A840"},
+    {id:"C", name:"KRX 연기금 신호",  pct:20, color:"#60D0C0"},
+    {id:"D", name:"현금·달러 단기채", pct:20, color:"#8A9BB0"}
+  ],
+  rules: {
+    singleStockMax: 0.15,      // 종목당 상한 (7월 계획)
+    krxBlockMax: 0.20,         // KRX 신호매매 블록 (7월 계획)
+    cashMin: 0.20,             // 현금·단기채 D블록 (7월 계획) / 원칙 5: 25~30%
+    leverageFromSalaryOnly: true,
+    stopLoss: -0.25,           // 종목 손절 기준 (7월 계획 RULES)
+    portfolioBreaker: -0.20,   // 포트 서킷브레이커: 도달 시 신규 매수 중단 (7월 계획)
+    leverageFundedBy: "inflow" // "inflow"(보증금 재원) | "salary"(월급 저축)
+  },
+  savings: {monthly: 2400000, start: "2026-11", actualToDate: null}, // actualToDate 입력 시 추정 대신 사용
+  lease: {
+    deposit: 650000000,         // 세입자에게 돌려줄 보증금
+    contractEnd: "2026-10-26/2028-10-26",
+    renewalDate: "2028-10-26", renewalCapPct: 5,
+    finalReturn: "2030-10-26",
+    ownLeaseEnd: "2028-10-30", ownLeaseOwnMoney: 73000000
+  },
+  stress: {SEMI:-0.40, HANON:-0.30, LEV:-0.80, label:"반도체 −40% · 한온 −30% · 레버리지 −80% 동시"},
+  hanonTriggers: {
+    pensionSellStreak: 5,      // 연기금 N거래일 연속 순매도
+    stopClose: 3500,           // 지지 구간 하단 이탈
+    resistLow: 4500,           // 매물대 하단 (매도 검토)
+    putLine: 5200,             // 한앤코 풋옵션 행사가
+    q3Status: "pending"        // 11/5 3Q 실적: pending | pass | fail
+  },
+  semiAlerts: {bearishProbSum: 40, offHighFlag: -30},
+  docUrl: "https://claude.ai/code/artifact/b4fd6602-bd59-4b38-b968-fa64523db01f"
+};
+
+// 보유 종목. src: semi(반도체 대시보드 시세) | krx(KRX 대시보드 시세) | manual(manualPrice 사용)
+// status: held(보유) | planned(계획, 평가 제외)
+const HOLDINGS = [
+  // 2026-10-17 취합 (증권사별 내역 합산, 평단 = 가중평균 USD). manualPrice/manualDate = 2026-10-16 종가(Yahoo)
+  // src "semi": 반도체 대시보드 시세가 manualDate보다 새로우면 그 값을 사용
+  {name:"Intel", ticker:"INTC", block:"SEMI", src:"semi", ccy:"USD", qty:184.808053, avg:112.9933, manualPrice:89.85, manualDate:"20261016", status:"held", note:"2개 계좌 합산"},
+  {name:"Micron Technology", ticker:"MU", block:"SEMI", src:"semi", ccy:"USD", qty:1.002, avg:1237.958, manualPrice:878.84, manualDate:"20261016", status:"held", note:"2개 계좌 합산"},
+  {name:"Teradyne", ticker:"TER", block:"SEMI", src:"manual", ccy:"USD", qty:6.12115, avg:481.18, manualPrice:325.00, manualDate:"20261016", status:"held", note:"반도체 대시보드 미추적"},
+  {name:"Wolfspeed", ticker:"WOLF", block:"SEMI", src:"manual", ccy:"USD", qty:90, avg:37.57, manualPrice:23.22, manualDate:"20261016", status:"held", note:"반도체 대시보드 미추적"},
+  {name:"Invesco S&P500 고배당 저변동", ticker:"SPHD", block:"USETC", src:"manual", ccy:"USD", qty:4, avg:51.08, manualPrice:50.61, manualDate:"20261016", status:"held"},
+  {name:"Vanguard Total Stock Market", ticker:"VTI", block:"USETC", src:"manual", ccy:"USD", qty:0.221, avg:375.62, manualPrice:374.07, manualDate:"20261016", status:"held"},
+  {name:"Vanguard S&P 500", ticker:"VOO", block:"USETC", src:"manual", ccy:"USD", qty:0.106, avg:702.59, manualPrice:701.61, manualDate:"20261016", status:"held"},
+  {name:"Invesco QQQ", ticker:"QQQ", block:"USETC", src:"manual", ccy:"USD", qty:0.094, avg:722.53, manualPrice:709.80, manualDate:"20261016", status:"held"},
+  {name:"iShares 20+ Year Treasury", ticker:"TLT", block:"USETC", src:"manual", ccy:"USD", qty:0.404, avg:78.34, manualPrice:80.05, manualDate:"20261016", status:"held"},
+  {name:"Momentus", ticker:"MNTS", block:"USETC", src:"manual", ccy:"USD", qty:6, avg:21.79, manualPrice:2.61, manualDate:"20261016", status:"held"},
+  {name:"한온시스템", ticker:"018880", block:"HANON", src:"krx", ccy:"KRW", qty:11, avg:3840, status:"held", note:"추가 매수는 10/26 이후 결정"},
+  {name:"한국토지신탁", ticker:"034830", block:"KRETC", src:"krx", ccy:"KRW", qty:10, avg:1106, status:"held"},
+  {name:"SOXL", ticker:"SOXL", block:"LEV", src:"manual", ccy:"USD", qty:0, avg:0, manualPrice:93.67, manualDate:"20261016", status:"planned", note:"예탁금 대기"}
+];
+// 현금성 (KRW 환산)
+const CASH = [
+  // {label:"증권 예탁금", krw:0}
+];
+const TRADES = [
+  // {date:"2026-10-27", ticker:"018880", side:"BUY", qty:0, price:0, ccy:"KRW", note:""}
+];
+const RULE_LOG = [
+  {date:"2026-10-17", rule:"배분안", change:"반도체 1.8억 · 한온 1.0억 · 예탁금 0.1억 제안 (7월 계획: 종목 15% 상한, 현금 20%)", reason:"검토 중 — 확정 시 사유 기록"}
+];
+const EVENTS = [
+  {date:"2026-10-26", title:"세입자 보증금 2.5억 유입", kind:"현금"},
+  {date:"2026-11-05", title:"한온시스템 3Q 잠정실적 발표", kind:"한온"},
+  {date:"2027-01-11", title:"한앤코 풋옵션 행사기간 개시 (~02.11, 5,200원)", kind:"한온"},
+  {date:"2028-04-20", title:"비트코인 반감기 (7월 계획 기준점)", kind:"참고"},
+  {date:"2028-10-26", title:"세입자 계약 만기 → 갱신 (5% 이내 증액, 최대 약 0.33억)", kind:"보증금"},
+  {date:"2028-10-30", title:"본인 거주 전세 만기 (본인 몫 0.73억, 월세 전환 검토)", kind:"현금"},
+  {date:"2028-11-01", title:"7월 계획 2년차 게이트 — 누적 성과 점검", kind:"게이트"},
+  {date:"2030-10-26", title:"세입자 보증금 반환 또는 재계약", kind:"보증금"}
+];
+
+// ════════════════════════════════════════════════════════════════════
+//  ② 소스
+// ════════════════════════════════════════════════════════════════════
+const SHEET_ID = "1_itLvsX9RqDsszr1msVFq2G3JeuXSKVIDWiXxRIzJ40";
+const SRC = {
+  krx:   {name:"KRX 대시보드", url:"https://hyunseokyang01-hue.github.io/krx-dashboard/kospi.html", page:"https://hyunseokyang01-hue.github.io/krx-dashboard/kospi.html", maxAgeDays:4},
+  semi:  {name:"반도체 대시보드", url:"https://hyunseokyang01-hue.github.io/semi-dashboard/data.json", page:"https://hyunseokyang01-hue.github.io/semi-dashboard/", maxAgeDays:9},
+  macro: {name:"매크로 브리핑", url:"https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&sheet=CALENDAR_30", page:"https://macro-briefing.netlify.app", maxAgeDays:4},
+  anal:  {name:"매크로 분석", url:"https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&sheet=ANALYSIS"}
+};
+const D = {krx:null, semi:null, macro:null, anal:null, err:{}};
+
+// ════════════════════════════════════════════════════════════════════
+//  ③ 유틸
+// ════════════════════════════════════════════════════════════════════
+const won = v => (v == null || isNaN(v)) ? '—' : Math.round(v).toLocaleString('ko-KR') + '원';
+const eok = v => (v == null || isNaN(v)) ? '—' : (v/1e8).toFixed(2) + '억';
+const man = v => (v == null || isNaN(v)) ? '—' : (v >= 0 ? '+' : '') + Math.round(v/1e4).toLocaleString('ko-KR') + '만';
+const pct = (v, d=1) => (v == null || isNaN(v)) ? '—' : (v >= 0 ? '+' : '') + v.toFixed(d) + '%';
+const pp  = (v, d=1) => (v == null || isNaN(v)) ? '—' : (v*100).toFixed(d) + '%';
+const cls = v => v > 0 ? 'up' : (v < 0 ? 'dn' : 'mu');
+const fd8 = s => s ? s.slice(0,4) + '.' + s.slice(4,6) + '.' + s.slice(6,8) : '—';
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const badge = (k, t) => '<span class="badge b-' + k + '">' + t + '</span>';
+const today = new Date();
+const ymd = d => d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+function daysBetween(a, b){ return Math.round((b - a) / 86400000); }
+function parseD(s){ s = String(s).replace(/[^0-9]/g,''); return new Date(+s.slice(0,4), +s.slice(4,6)-1, +s.slice(6,8)); }
+function kpi(label, val, sub, color){
+  return '<div class="kpi" style="border-top-color:' + (color||'var(--gold)') + '"><div class="l">' + label + '</div><div class="v" style="color:' + (color||'var(--white)') + '">' + val + '</div><div class="s">' + (sub||'') + '</div></div>';
+}
+
+// JS 소스에서 const 리터럴 추출 (KRX 대시보드 HTML용)
+function extractConst(txt, name){
+  const re = new RegExp('\\bconst\\s+' + name + '\\s*=\\s*');
+  const m = re.exec(txt); if(!m) return null;
+  const i = m.index + m[0].length, op = txt[i], cl = op === '[' ? ']' : '}';
+  let d = 0, s = false, q = '', e = false;
+  for(let j = i; j < txt.length; j++){
+    const c = txt[j];
+    if(e){ e = false; continue; }
+    if(c === '\\'){ e = true; continue; }
+    if(s){ if(c === q) s = false; continue; }
+    if(c === '"' || c === "'" || c === '`'){ s = true; q = c; continue; }
+    if(c === '/' && txt[j+1] === '/'){ const k = txt.indexOf('\n', j); j = k < 0 ? txt.length : k; continue; }
+    if(c === op) d++;
+    else if(c === cl){ d--; if(d === 0) return txt.slice(i, j+1); }
+  }
+  return null;
+}
+function parseLit(t){ if(!t) return null; try { return JSON.parse(t); } catch(e) { return (new Function('return (' + t + ')'))(); } }
+function gviz(txt){
+  const j = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
+  const cols = j.table.cols.map(c => c.label || c.id);
+  return j.table.rows.map(r => { const o = {}; cols.forEach((c, i) => { const x = r.c[i]; o[c] = x ? (x.v != null ? x.v : x.f) : null; }); return o; });
+}
+async function getText(u, bust){ const r = await fetch(bust ? u + (u.includes('?') ? '&' : '?') + 't=' + Date.now() : u, {cache:'no-store'}); if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }
+
+// ════════════════════════════════════════════════════════════════════
+//  ④ 로딩
+// ════════════════════════════════════════════════════════════════════
+async function loadAll(){
+  const jobs = {
+    krx: async () => {
+      const t = await getText(SRC.krx.url, true);
+      const o = {};
+      ['RAW','LOG','TODAY_BY_CODE','FLOG_BY_CODE','SLOG_BY_CODE','DEEP_BY_CODE'].forEach(n => { try { o[n] = parseLit(extractConst(t, n)); } catch(e) { o[n] = null; } });
+      if(!o.LOG || !o.FLOG_BY_CODE) throw new Error('KRX 배열 파싱 실패');
+      return o;
+    },
+    semi: async () => JSON.parse((await getText(SRC.semi.url, true)).replace(/\bNaN\b/g, 'null')),  // data.json history에 NaN 포함
+    macro: async () => gviz(await getText(SRC.macro.url, false)),
+    anal: async () => gviz(await getText(SRC.anal.url, false))
+  };
+  const keys = Object.keys(jobs);
+  const res = await Promise.allSettled(keys.map(k => jobs[k]()));
+  res.forEach((r, i) => { if(r.status === 'fulfilled') D[keys[i]] = r.value; else D.err[keys[i]] = String(r.reason && r.reason.message || r.reason); });
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  ⑤ 파생 지표
+// ════════════════════════════════════════════════════════════════════
+function macroLast(field){
+  if(!D.macro) return null;
+  for(let i = D.macro.length - 1; i >= 0; i--){ const v = D.macro[i][field]; if(v != null && v !== '') return {v:+v, d:String(D.macro[i].date)}; }
+  return null;
+}
+function macroSeries(field){ return D.macro ? D.macro.filter(r => r[field] != null && r[field] !== '').map(r => ({d:String(r.date), v:+r[field]})) : []; }
+function fx(){ const m = macroLast('usdkrw'); return m ? m.v : CONFIG.fxFallback; }
+
+function hanon(){
+  if(!D.krx) return null;
+  const c = '018880';
+  const LOG = D.krx.LOG, FL = (D.krx.FLOG_BY_CODE||{})[c] || [], SL = (D.krx.SLOG_BY_CODE||{})[c] || [];
+  const dates = [...new Set(LOG.map(r => r.d))].sort();
+  const D30 = dates.slice(-30);
+  const map = {}; LOG.forEach(r => { if(r.c === c) map[r.d] = r.v; });
+  const T = (D.krx.TODAY_BY_CODE||{})[c]; if(T && map[T.d] == null) map[T.d] = T.v;
+  const series = D30.map(d => ({d, v: map[d] || 0}));
+  const cum30 = series.reduce((s, x) => s + x.v, 0);
+  const by = {}; LOG.forEach(r => { if(D30.includes(r.d)) by[r.c] = (by[r.c]||0) + r.v; });
+  const rank = Object.entries(by).sort((a,b) => b[1]-a[1]).findIndex(x => x[0] === c) + 1;
+  const D7 = dates.slice(-7); const cum7 = D7.reduce((s, d) => s + (map[d]||0), 0);
+  let sellStreak = 0; for(let i = D30.length - 1; i >= 0; i--){ if((map[D30[i]]||0) < 0) sellStreak++; else break; }
+  let buyStreak = 0; for(let i = D30.length - 1; i >= 0; i--){ if((map[D30[i]]||0) > 0) buyStreak++; else break; }
+  const fl = FL.length ? FL[FL.length-1] : null, f0 = FL.length ? FL[0] : null;
+  const bals = SL.filter(r => r.bal > 0); const sb = bals.length ? bals[bals.length-1] : null, sb0 = bals.length ? bals[0] : null;
+  return {series, cum30, rank, cum7, sellStreak, buyStreak, lastDate: dates[dates.length-1], today:T,
+    price: fl ? fl.price : null, priceD: fl ? fl.d : null, chg: fl ? fl.chg : null,
+    fHold: fl ? fl.hold : null, fPct: fl ? fl.pct : null, fChg: (fl && f0) ? fl.hold - f0.hold : null, fFrom: f0 ? f0.d : null,
+    sBal: sb ? sb.bal : null, sBalD: sb ? sb.d : null, sChg: (sb && sb0) ? sb.bal - sb0.bal : null, sFrom: sb0 ? sb0.d : null,
+    deep: (D.krx.DEEP_BY_CODE||{})[c] || null};
+}
+function semiTicker(t){ return D.semi ? (D.semi.tickers||[]).find(x => x.ticker === t) : null; }
+
+function valuePositions(){
+  const FX = fx(); const H = hanon();
+  return HOLDINGS.map(h => {
+    let px = null, pxD = null, srcOk = true;
+    if(h.src === 'krx'){
+      const FL = D.krx ? ((D.krx.FLOG_BY_CODE||{})[h.ticker] || []) : [];
+      const l = FL.length ? FL[FL.length-1] : null; px = l ? l.price : null; pxD = l ? l.d : null;
+    } else if(h.src === 'semi'){
+      const t = semiTicker(h.ticker); px = t ? t.price : null; pxD = t ? t.date.replace(/-/g,'') : null;
+    }
+    // 수동 시세가 더 최신이면 수동값 사용
+    if(h.manualPrice != null && (px == null || (h.manualDate && (!pxD || h.manualDate > pxD)))){ px = h.manualPrice; pxD = h.manualDate || CONFIG.updated.replace(/-/g,''); h = Object.assign({}, h, {usedManual:true}); }
+    if(px == null){ srcOk = false; px = h.avg; }
+    const rate = h.ccy === 'USD' ? FX : 1;
+    const value = h.status === 'held' ? h.qty * px * rate : 0;
+    const cost = h.status === 'held' ? h.qty * h.avg * rate : 0;
+    return Object.assign({}, h, {px, pxD, srcOk, value, cost, pnl: value - cost, pnlPct: cost > 0 ? (value/cost - 1)*100 : null});
+  });
+}
+function portfolio(){
+  const pos = valuePositions();
+  const cash = CASH.reduce((s, c) => s + c.krw, 0);
+  const inflowPending = today < parseD(CONFIG.inflow.date) ? CONFIG.inflow.amount : 0;
+  const byBlock = {}; pos.forEach(p => { byBlock[p.block] = (byBlock[p.block]||0) + p.value; });
+  const invested = pos.reduce((s, p) => s + p.value, 0);
+  const total = invested + cash + inflowPending;
+  return {pos, cash, inflowPending, byBlock, invested, total, cost: pos.reduce((s,p)=>s+p.cost,0)};
+}
+function savingsToDate(){
+  if(CONFIG.savings.actualToDate != null) return {v: CONFIG.savings.actualToDate, est:false};
+  const [y, m] = CONFIG.savings.start.split('-').map(Number);
+  const months = Math.max(0, (today.getFullYear() - y) * 12 + (today.getMonth() + 1 - m) + 1);
+  return {v: months * CONFIG.savings.monthly, est:true, months};
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  ⑥ 미니 차트 (SVG)
+// ════════════════════════════════════════════════════════════════════
+function barSvg(series, color, opts){
+  opts = opts || {};
+  const W = 900, H = opts.h || 220, m = {t:18, r:12, b:28, l:58};
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const mx = Math.max(1, ...series.map(s => Math.abs(s.v)));
+  const y = v => m.t + ih/2 - (v/mx) * (ih/2) * 0.92;
+  const bw = iw / series.length;
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:100%;display:block">';
+  s += '<line x1="' + m.l + '" x2="' + (W-m.r) + '" y1="' + y(0) + '" y2="' + y(0) + '" stroke="#3A5080"/>';
+  [mx, mx/2, -mx/2, -mx].forEach(v => { s += '<text x="' + (m.l-6) + '" y="' + (y(v)+3) + '" fill="#8A9BB5" font-size="10" text-anchor="end">' + (v>0?'+':'') + Math.round(v/1e4) + '만</text>'; });
+  series.forEach((p, i) => {
+    const x = m.l + i*bw + bw*0.15, w = bw*0.7, y0 = y(0), yv = y(p.v);
+    s += '<rect x="' + x + '" y="' + Math.min(y0, yv) + '" width="' + w + '" height="' + Math.max(1, Math.abs(yv-y0)) + '" fill="' + (p.v >= 0 ? color : '#FF5252') + '" opacity=".85"><title>' + fd8(p.d) + ' ' + (p.v>=0?'+':'') + p.v.toLocaleString() + '주</title></rect>';
+    if(i % 3 === 0) s += '<text x="' + (x + w/2) + '" y="' + (H-8) + '" fill="#B0BEC5" font-size="10" text-anchor="middle">' + p.d.slice(4,6) + '.' + p.d.slice(6) + '</text>';
+  });
+  return s + '</svg>';
+}
+function lineSvg(series, color, title, fmt){
+  const W = 420, H = 150, m = {t:22, r:10, b:22, l:52};
+  if(series.length < 2) return '<div class="small">데이터 부족</div>';
+  const vs = series.map(p => p.v), lo = Math.min(...vs), hi = Math.max(...vs), pad = (hi-lo)*0.1 || 1;
+  const x = i => m.l + i * (W - m.l - m.r) / (series.length - 1);
+  const y = v => m.t + (1 - (v - lo + pad) / (hi - lo + 2*pad)) * (H - m.t - m.b);
+  const path = series.map((p, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(p.v).toFixed(1)).join('');
+  const last = series[series.length-1], first = series[0];
+  const ch = (last.v / first.v - 1) * 100;
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;display:block">';
+  s += '<text x="' + m.l + '" y="14" fill="#C9A84C" font-size="11" font-weight="700">' + esc(title) + '</text>';
+  s += '<text x="' + (W-m.r) + '" y="14" fill="' + (ch>=0?'#4CAF50':'#FF5252') + '" font-size="11" text-anchor="end">' + fmt(last.v) + ' (' + pct(ch) + ')</text>';
+  [hi, lo].forEach(v => { s += '<text x="' + (m.l-5) + '" y="' + (y(v)+3) + '" fill="#8A9BB5" font-size="9" text-anchor="end">' + fmt(v) + '</text>'; });
+  s += '<path d="' + path + '" fill="none" stroke="' + color + '" stroke-width="1.8"/>';
+  s += '<text x="' + m.l + '" y="' + (H-6) + '" fill="#8A9BB5" font-size="9">' + fd8(first.d) + '</text><text x="' + (W-m.r) + '" y="' + (H-6) + '" fill="#8A9BB5" font-size="9" text-anchor="end">' + fd8(last.d) + '</text>';
+  return s + '</svg>';
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  ⑦ 렌더
+// ════════════════════════════════════════════════════════════════════
+function srcStatus(){
+  const H = hanon();
+  const items = [
+    ['krx', H ? H.lastDate : null],
+    ['semi', D.semi ? String(D.semi.updatedAt).slice(0,10).replace(/-/g,'') : null],
+    ['macro', macroLast('usdkrw') ? macroLast('usdkrw').d : null]
+  ];
+  return items.map(([k, d]) => {
+    if(D.err[k]) return '<span class="src-pill err">' + SRC[k].name + ' 실패</span>';
+    const age = d ? daysBetween(parseD(d), today) : 999;
+    const st = age > SRC[k].maxAgeDays ? 'stale' : 'ok';
+    return '<span class="src-pill ' + st + '">' + SRC[k].name + ' ' + fd8(d) + (st === 'stale' ? ' · 갱신 지연' : '') + '</span>';
+  }).join('');
+}
+
+function renderOverview(P){
+  const FX = fx(), H = hanon(), S = savingsToDate();
+  document.getElementById('hsub').innerHTML = '열 때마다 세 대시보드 최신값을 읽어 계산 · 설정 기준 ' + CONFIG.updated + ' · USD/KRW ' + FX.toLocaleString() + '<br>' + srcStatus();
+  document.getElementById('p0note').textContent = P.inflowPending ? ('보증금 2.5억은 ' + CONFIG.inflow.date + ' 유입 예정 — 그 전까지 총액에 "유입 예정"으로 포함') : '';
+  const pnl = P.invested - P.cost;
+  document.getElementById('kpiTop').innerHTML =
+    kpi('총 투자자산 (평가 + 현금 + 유입 예정)', eok(P.total), '평가 ' + eok(P.invested) + ' · 현금 ' + eok(P.cash) + (P.inflowPending ? ' · 유입 예정 ' + eok(P.inflowPending) : ''), 'var(--gold)') +
+    kpi('평가 손익', man(pnl) + '원', P.cost ? pct((P.invested/P.cost - 1)*100) + ' (매입 ' + eok(P.cost) + ')' : '매입 기록 없음', pnl >= 0 ? 'var(--green)' : 'var(--red)') +
+    kpi('한온시스템 연기금 30일', H ? man(H.cum30) + '주' : '—', H ? '584종목 중 #' + H.rank + ' · 최근 ' + (H.buyStreak ? H.buyStreak + '일 연속 순매수' : H.sellStreak + '일 연속 순매도') : '', 'var(--hon)') +
+    kpi('반도체 시나리오 (Bear+BlackSwan)', D.semi ? (D.semi.scenarioProbs.Bear + D.semi.scenarioProbs.BlackSwan) + '%' : '—', D.semi ? 'Base ' + D.semi.scenarioProbs.Base + ' · Bull ' + D.semi.scenarioProbs.Bull + ' · Intel ' + D.semi.intelScenario.current : '', 'var(--semi)') +
+    kpi('저축 누계 (보증금 완충)', eok(S.v), S.est ? '월 ' + (CONFIG.savings.monthly/1e4) + '만 × ' + S.months + '개월 추정' : '실제 입력값', 'var(--cash)');
+
+  // 배분 바
+  const totT = CONFIG.target.reduce((s, t) => s + t.amount, 0);
+  function bar(parts){ return '<div class="alloc">' + parts.filter(p => p.w > 0).map(p => '<div style="width:' + (p.w*100) + '%;background:' + p.c + '" title="' + esc(p.n) + ' ' + pp(p.w) + '">' + (p.w > 0.07 ? esc(p.n) + ' ' + pp(p.w,0) : '') + '</div>').join('') + '</div>'; }
+  const curParts = CONFIG.blocks.map(t => ({n:t.name, w:P.total ? (P.byBlock[t.id]||0)/P.total : 0, c:t.color}));
+  curParts.push({n:'현금', w:P.total ? P.cash/P.total : 0, c:'#8A9BB0'});
+  curParts.push({n:'유입 예정', w:P.total ? P.inflowPending/P.total : 0, c:'#37474F'});
+  const tgtParts = CONFIG.target.map(t => ({n:t.name, w:t.amount/totT, c:t.color}));
+  const julParts = CONFIG.julyPlan.map(b => ({n:b.name, w:b.pct/100, c:b.color}));
+  document.getElementById('allocWrap').innerHTML =
+    '<div class="alloc-lbl">현재 (평가액 기준)</div>' + bar(curParts) +
+    '<div class="alloc-lbl">목표 — 10/17 제안안 (총 ' + eok(totT) + ')</div>' + bar(tgtParts) +
+    '<div class="alloc-lbl">7월 투자 전략 계획 (블록 비중)</div>' + bar(julParts);
+
+  // 신호
+  const sig = signals(P);
+  document.getElementById('signalWrap').innerHTML = '<div class="tw"><table><tr><th>영역</th><th>신호</th><th>상태</th><th>근거</th></tr>' +
+    sig.map(s => '<tr><td class="c">' + s.area + '</td><td class="l">' + s.name + '</td><td class="c">' + badge(s.k, s.st) + '</td><td class="l small">' + s.why + '</td></tr>').join('') + '</table></div>';
+
+  document.getElementById('links').innerHTML =
+    '<a href="' + SRC.krx.page + '" target="_blank">KRX 연기금 대시보드</a> · <a href="' + SRC.semi.page + '" target="_blank">반도체 대시보드</a> · <a href="' + SRC.macro.page + '" target="_blank">매크로 브리핑</a> · <a href="' + CONFIG.docUrl + '" target="_blank">투자 점검 문서</a>';
+}
+
+function signals(P){
+  const out = [], H = hanon(), R = CONFIG.rules, T = CONFIG.hanonTriggers;
+  const tot = P.total || 1;
+  const tgtTot = CONFIG.target.reduce((s,t)=>s+t.amount,0);
+  const hanW = Math.max((P.byBlock.HANON||0)/tot, 0), hanTgt = (CONFIG.target.find(t=>t.id==='HANON')||{amount:0}).amount / tgtTot;
+  out.push({area:'규칙', name:'한온 비중 vs 종목 상한 ' + pp(R.singleStockMax,0), k: (hanW > R.singleStockMax || hanTgt > R.singleStockMax) ? 'red' : 'green', st: (hanW > R.singleStockMax || hanTgt > R.singleStockMax) ? '초과' : '정상', why:'현재 ' + pp(hanW) + ' · 목표 ' + pp(hanTgt) + ' — 초과 유지 시 RULE_LOG에 사유 기록'});
+  const cashW = (P.cash + P.inflowPending)/tot, cashTgt = 0;
+  out.push({area:'규칙', name:'현금 비중 vs ' + pp(R.cashMin,0) + ' (원칙 5: 25~30%)', k: cashTgt < R.cashMin ? 'red' : 'green', st: cashTgt < R.cashMin ? '목표안 0%' : '정상', why:'현재 ' + pp(cashW) + '(유입 예정 포함) · 목표안은 예탁금 외 현금 없음'});
+  if(R.leverageFromSalaryOnly && R.leverageFundedBy !== 'salary') out.push({area:'규칙', name:'레버리지 재원', k:'amber', st:'규칙 상충', why:'SOXL 대기 예탁금이 보증금 재원 — "레버리지는 월급 한정" 규칙. 월 저축분으로 바꾸면 해소'});
+  const held = P.pos.filter(p => p.status === 'held' && p.cost > 0);
+  const breach = held.filter(p => p.pnlPct != null && p.pnlPct/100 <= R.stopLoss);
+  const portPnl = P.cost > 0 ? P.invested/P.cost - 1 : 0;
+  out.push({area:'규칙', name:'포트 서킷브레이커 ' + pp(R.portfolioBreaker,0) + ' (보유분 기준)', k: portPnl <= R.portfolioBreaker ? 'red' : (portPnl <= R.portfolioBreaker/2 ? 'amber' : 'green'), st: portPnl <= R.portfolioBreaker ? '발동' : pp(portPnl), why:'보유분 평가손익 ' + pp(portPnl) + ' — 7월 규칙: 도달 시 신규 매수 중단, 레짐 재점검 후 재개'});
+  out.push({area:'규칙', name:'종목 손절 기준 ' + pp(R.stopLoss,0), k: breach.length ? 'red' : 'green', st: breach.length ? breach.length + '종목' : '없음', why: breach.length ? breach.map(b => b.ticker + ' ' + pct(b.pnlPct,0)).join(' · ') : '전 종목 기준 이내'});
+  if(H){
+    const px = H.price;
+    out.push({area:'한온', name:'연기금 ' + T.pensionSellStreak + '거래일 연속 순매도', k: H.sellStreak >= T.pensionSellStreak ? 'red' : (H.sellStreak >= 2 ? 'amber' : 'green'), st: H.sellStreak >= T.pensionSellStreak ? '발동' : (H.sellStreak ? H.sellStreak + '일째' : '미발동'), why:'최근 ' + (H.buyStreak ? H.buyStreak + '거래일 연속 순매수' : H.sellStreak + '거래일 연속 순매도') + ' (' + fd8(H.lastDate) + ')'});
+    out.push({area:'한온', name:'종가 ' + T.stopClose.toLocaleString() + '원 이탈', k: px != null && px < T.stopClose ? 'red' : 'green', st: px != null && px < T.stopClose ? '발동' : '미발동', why:'종가 ' + won(px) + ' (' + fd8(H.priceD) + ')'});
+    out.push({area:'한온', name:'매물대 ' + T.resistLow.toLocaleString() + '원 / 풋옵션선 ' + T.putLine.toLocaleString() + '원', k: px >= T.putLine ? 'amber' : (px >= T.resistLow ? 'amber' : 'gray'), st: px >= T.putLine ? '풋옵션선 도달' : (px >= T.resistLow ? '매도 검토 구간' : '아래'), why:'상단 매물·오버행 구간 진입 여부'});
+    out.push({area:'한온', name:'공매도 잔고 추세', k: H.sChg > 0 ? 'amber' : 'green', st: H.sChg > 0 ? '증가' : '감소/횡보', why: H.sBal ? '잔고 ' + H.sBal.toLocaleString() + '주 (' + fd8(H.sBalD) + '), ' + fd8(H.sFrom) + ' 대비 ' + man(H.sChg) + '주' : '데이터 없음'});
+    out.push({area:'한온', name:'3Q 잠정실적 (11/5)', k: T.q3Status === 'pass' ? 'green' : (T.q3Status === 'fail' ? 'red' : 'gray'), st: T.q3Status === 'pass' ? '확인' : (T.q3Status === 'fail' ? '전제 훼손' : '대기'), why:'흑자전환 경로 확인 — 발표 후 CONFIG.hanonTriggers.q3Status 갱신'});
+  }
+  if(D.semi){
+    const sp = D.semi.scenarioProbs, bear = sp.Bear + sp.BlackSwan;
+    out.push({area:'반도체', name:'Bear + BlackSwan 확률 ≥ ' + CONFIG.semiAlerts.bearishProbSum + '%', k: bear >= CONFIG.semiAlerts.bearishProbSum ? 'red' : (bear >= CONFIG.semiAlerts.bearishProbSum - 5 ? 'amber' : 'green'), st: bear + '%', why:'반도체 대시보드 주간 시나리오 (' + String(D.semi.qualUpdatedAt||D.semi.updatedAt).slice(0,10) + ')'});
+    const red = (D.semi.cycleSignals||[]).filter(c => c.status === 'red').length, amb = (D.semi.cycleSignals||[]).filter(c => c.status === 'amber').length;
+    out.push({area:'반도체', name:'사이클 신호 (메모리·장비·AI capex)', k: red ? 'red' : (amb ? 'amber' : 'green'), st: red ? 'red ' + red : (amb ? 'amber ' + amb : '모두 green'), why:(D.semi.cycleSignals||[]).map(c => c.name + ' ' + c.status).join(' · ')});
+    const holdsIntc = HOLDINGS.some(h => h.ticker === 'INTC' && h.status === 'held');
+    const is = D.semi.intelScenario || {};
+    out.push({area:'반도체', name:'Intel 시나리오' + (holdsIntc ? ' (보유 중)' : ''), k: is.current === 'Bear' ? (holdsIntc ? 'red' : 'amber') : (is.current === 'Bull' ? 'green' : 'gray'), st: is.current || '—', why: (holdsIntc && is.current === 'Bear' ? '7월 규칙 t5: Intel 시나리오 부정 전환 시 위성 기계적 청산 — ' : '') + esc(is.keyTrigger || '')});
+  }
+  return out;
+}
+
+function renderSemi(P){
+  const FX = fx();
+  const semiPos = P.pos.filter(p => p.block === 'SEMI' || p.block === 'USETC' || p.block === 'LEV');
+  const val = semiPos.reduce((s,p)=>s+p.value,0), cost = semiPos.reduce((s,p)=>s+p.cost,0);
+  document.getElementById('p1note').textContent = D.semi ? ('반도체 대시보드 ' + D.semi.updatedAt + ' 기준 (주간 갱신, 시세일 ' + ((D.semi.tickers||[])[0]||{}).date + ')') : ('반도체 대시보드 로드 실패: ' + (D.err.semi||''));
+  const tgt = (CONFIG.target.find(t=>t.id==='SEMI')||{}).amount;
+  document.getElementById('semiKpi').innerHTML =
+    kpi('미국 주식 평가액', eok(val), '반도체 ' + eok(P.byBlock.SEMI||0) + ' · 지수·기타 ' + eok(P.byBlock.USETC||0) + ' | 반도체 목표 ' + eok(tgt), 'var(--semi)') +
+    kpi('평가 손익', man(val - cost) + '원', cost ? pct((val/cost-1)*100) : '매입 기록 없음', val-cost >= 0 ? 'var(--green)' : 'var(--red)') +
+    kpi('USD/KRW', FX.toLocaleString(), '매크로 시트 ' + (macroLast('usdkrw') ? fd8(macroLast('usdkrw').d) : '대체값'), 'var(--gold)');
+  document.getElementById('semiHold').innerHTML = '<div class="tw"><table><tr><th>종목</th><th>상태</th><th>수량</th><th>평단</th><th>현재가</th><th>시세일</th><th>평가액(원)</th><th>손익</th><th>메모</th></tr>' +
+    semiPos.map(p => '<tr><td class="l">' + esc(p.name) + (p.ticker && p.ticker.length < 6 ? ' <span class="mu">' + p.ticker + '</span>' : '') + '</td><td class="c">' + badge(p.status==='held'?'green':'gray', p.status==='held'?'보유':'계획') + '</td><td>' + (p.qty||0).toLocaleString() + '</td><td>' + (p.avg ? (p.ccy==='USD'?'$':'') + p.avg.toLocaleString() : '—') + '</td><td>' + (p.srcOk ? (p.ccy==='USD'?'$':'') + Number(p.px).toLocaleString() : '<span class="mu">시세 없음</span>') + '</td><td class="c">' + fd8(p.pxD) + (p.usedManual ? ' <span class="mu">수동</span>' : '') + '</td><td>' + won(p.value) + '</td><td class="' + cls(p.pnl) + '">' + (p.cost ? man(p.pnl) + ' (' + pct(p.pnlPct) + ')' : '—') + '</td><td class="l small">' + esc(p.note||'') + '</td></tr>').join('') + '</table></div>';
+  if(!D.semi){ document.getElementById('semiSignals').innerHTML = ''; return; }
+  const sp = D.semi.scenarioProbs, is = D.semi.intelScenario || {};
+  const st = s => s === 'green' ? badge('green','green') : (s === 'red' ? badge('red','red') : badge('amber', s));
+  document.getElementById('semiSignals').innerHTML =
+    '<div class="card"><h4>시나리오 확률</h4><div class="small">' + ['Bull','Base','Bear','BlackSwan'].map(k => k + ' <b>' + sp[k] + '%</b>').join(' · ') + '</div><div class="small" style="margin-top:.5rem">' + esc(D.semi.summary||'').slice(0, 420) + '</div></div>' +
+    '<div class="card"><h4>Intel 단독 시나리오 — ' + esc(is.current||'') + '</h4><div class="small">' + esc(is.rationale||'') + '</div><div class="small" style="margin-top:.4rem"><b>핵심 트리거</b>: ' + esc(is.keyTrigger||'') + '</div></div>' +
+    '<div class="card"><h4>사이클 신호</h4><div class="small">' + (D.semi.cycleSignals||[]).concat(D.semi.customChipSignal ? [D.semi.customChipSignal] : []).map(c => st(c.status) + ' <b>' + esc(c.name) + '</b> — ' + esc(c.summary)).join('<br>') + '</div></div>' +
+    '<div class="card"><h4>가설 점검 (이번 주)</h4><div class="small">' + (D.semi.hypothesis||[]).map(h => (h.dir==='up'?'▲':'▼') + ' [' + esc(h.w) + '] ' + esc(h.txt) + ' <span class="mu">— ' + esc(h.note) + '</span>').join('<br>') + '</div></div>';
+  const held = new Set(HOLDINGS.filter(h => h.status==='held').map(h => h.ticker));
+  document.getElementById('semiTbl').innerHTML = '<table><tr><th>종목</th><th>가격($)</th><th>7일</th><th>30일</th><th>YTD</th><th>52주 고점 대비</th><th>공매도/유통</th></tr>' +
+    (D.semi.tickers||[]).map(t => '<tr' + (held.has(t.ticker) ? ' style="background:#5B9BD522"' : '') + '><td class="l"><b>' + t.ticker + '</b> <span class="mu">' + esc(t.name) + '</span>' + (held.has(t.ticker) ? ' ' + badge('green','보유') : '') + '</td><td>' + Number(t.price).toLocaleString() + '</td><td class="' + cls(t.d7) + '">' + pct(t.d7) + '</td><td class="' + cls(t.d30) + '">' + pct(t.d30) + '</td><td class="' + cls(t.ytd) + '">' + pct(t.ytd,0) + '</td><td class="' + (t.offHigh52w <= CONFIG.semiAlerts.offHighFlag ? 'dn' : 'mu') + '">' + pct(t.offHigh52w) + '</td><td>' + (t.shortPctFloat != null ? Number(t.shortPctFloat).toFixed(2) + '%' : '—') + '</td></tr>').join('') + '</table>';
+}
+
+function renderHanon(P){
+  const H = hanon();
+  if(!H){ document.getElementById('p2note').textContent = 'KRX 대시보드 로드 실패: ' + (D.err.krx||''); return; }
+  document.getElementById('p2note').textContent = 'KRX 대시보드 ' + fd8(H.lastDate) + ' 기준 (일간 갱신)';
+  const pos = P.pos.find(p => p.ticker === '018880');
+  const tgt = (CONFIG.target.find(t=>t.id==='HANON')||{}).amount;
+  const qtyAtTgt = H.price ? Math.floor(tgt / H.price) : null;
+  document.getElementById('hanKpi').innerHTML =
+    kpi('종가', won(H.price), fd8(H.priceD) + ' ' + pct(H.chg), 'var(--hon)') +
+    kpi('포지션', pos && pos.status === 'held' ? eok(pos.value) : '미보유', pos && pos.status === 'held' ? pos.qty.toLocaleString() + '주 · ' + man(pos.pnl) + '원 (' + pct(pos.pnlPct) + ')' : '목표 ' + eok(tgt) + ' = 현재가로 약 ' + (qtyAtTgt||0).toLocaleString() + '주', 'var(--hon)') +
+    kpi('연기금 30일 / 7일', man(H.cum30) + ' / ' + man(H.cum7), '30일 순위 #' + H.rank, 'var(--gold)') +
+    kpi('외국인 보유', H.fHold ? (H.fHold/1e4).toLocaleString('ko-KR',{maximumFractionDigits:0}) + '만주' : '—', H.fPct + '% · ' + fd8(H.fFrom) + ' 대비 ' + man(H.fChg) + '주', H.fChg < 0 ? 'var(--red)' : 'var(--green)') +
+    kpi('공매도 순보유잔고', H.sBal ? (H.sBal/1e4).toFixed(0) + '만주' : '—', fd8(H.sBalD) + ' · ' + fd8(H.sFrom) + ' 대비 ' + man(H.sChg) + '주', H.sChg > 0 ? 'var(--amber)' : 'var(--green)');
+  document.getElementById('hanChart').innerHTML = barSvg(H.series, '#60D0C0');
+  const T = CONFIG.hanonTriggers, px = H.price;
+  const rows = [
+    ['무효화', '연기금 ' + T.pensionSellStreak + '거래일 연속 순매도', H.sellStreak >= T.pensionSellStreak, H.sellStreak + '일 연속 순매도 / ' + H.buyStreak + '일 연속 순매수'],
+    ['무효화', '종가 ' + T.stopClose.toLocaleString() + '원 이탈 (지지 구간 하단)', px < T.stopClose, '종가 ' + won(px)],
+    ['무효화', '3Q 실적이 흑자전환 경로를 깨는 경우', T.q3Status === 'fail', '상태: ' + T.q3Status + ' (11/5 발표)'],
+    ['매도 검토', '매물대 ' + T.resistLow.toLocaleString() + '~4,700원 도달', px >= T.resistLow, '현재가와 거리 ' + pct((T.resistLow/px-1)*100)],
+    ['매도 검토', '한앤코 풋옵션선 ' + T.putLine.toLocaleString() + '원 도달', px >= T.putLine, '현재가와 거리 ' + pct((T.putLine/px-1)*100)],
+    ['주의', '연기금 순매수 + 공매도 잔고 증가 (헤지 가능성)', H.cum7 > 0 && H.sChg > 0, '7일 연기금 ' + man(H.cum7) + '주 · 잔고 ' + man(H.sChg) + '주']
+  ];
+  document.getElementById('hanTrig').innerHTML = '<table><tr><th>구분</th><th>조건</th><th>판정</th><th>현재</th></tr>' + rows.map(r => '<tr><td class="c">' + r[0] + '</td><td class="l">' + r[1] + '</td><td class="c">' + (r[2] ? badge(r[0]==='무효화'?'red':'amber','발동') : badge('gray','미발동')) + '</td><td class="l small">' + r[3] + '</td></tr>').join('') + '</table>' +
+    '<div class="small" style="margin-top:6px">기준값은 CONFIG.hanonTriggers에서 바꾼다. 상세 수급·매물대·밸류는 <a href="' + SRC.krx.page + '" target="_blank">KRX 대시보드 한온 탭 섹션 E</a>.</div>';
+}
+
+function renderMacro(){
+  if(!D.macro){ document.getElementById('p3note').textContent = '매크로 시트 로드 실패: ' + (D.err.macro||''); return; }
+  const items = [
+    ['usdkrw','USD/KRW', v => v.toLocaleString(undefined,{maximumFractionDigits:1}), '#F0C040', '달러 자산 원화 환산에 직결'],
+    ['semicon','반도체 지수 (시트 semicon)', v => v.toLocaleString(undefined,{maximumFractionDigits:1}), '#5B9BD5', '반도체 블록 방향성'],
+    ['nasdaq','나스닥', v => v.toLocaleString(undefined,{maximumFractionDigits:0}), '#5BB8F5', ''],
+    ['kospi','코스피', v => v.toLocaleString(undefined,{maximumFractionDigits:0}), '#60D0C0', '한온 블록 시장 베타'],
+    ['us10y','미 10년물 (%)', v => v.toFixed(2), '#FF9800', '성장주 할인율'],
+    ['dxy','달러인덱스', v => v.toFixed(1), '#A87CCA', '']
+  ];
+  document.getElementById('p3note').textContent = '매크로 브리핑 구글시트 CALENDAR_30 기준 (일간 갱신, 마지막 유효값 사용)';
+  document.getElementById('macKpi').innerHTML = items.slice(0,5).map(it => { const L = macroLast(it[0]); const s = macroSeries(it[0]); const ch = s.length > 1 ? (s[s.length-1].v/s[0].v-1)*100 : null; return kpi(it[1], L ? it[2](L.v) : '—', (L ? fd8(L.d) : '') + (ch != null ? ' · 30일 ' + pct(ch) : '') + (it[4] ? '<br>' + it[4] : ''), it[3]); }).join('');
+  document.getElementById('macCharts').innerHTML = items.map(it => '<div class="card">' + lineSvg(macroSeries(it[0]), it[3], it[1], it[2]) + '</div>').join('');
+  const a = D.anal ? D.anal.filter(r => r.B === 'pmi' || r.B === 'bond') : [];
+  const last = a.length ? a[a.length-1] : null;
+  document.getElementById('macText').innerHTML = last ? '<b>' + esc(String(last.A).replace(/'/g,'')) + ' · ' + esc(last.B) + '</b><br>' + esc(last.C).replace(/\*\*/g,'').replace(/^#+ /gm,'').replace(/\n/g,'<br>') : '분석 데이터 없음';
+}
+
+function renderRisk(P){
+  const R = CONFIG.rules, tot = P.total || 1, tgtTot = CONFIG.target.reduce((s,t)=>s+t.amount,0);
+  const tg = id => (CONFIG.target.find(t=>t.id===id)||{amount:0}).amount;
+  const semiEff = (tg('SEMI') + 3*tg('LEV'))/tgtTot;
+  const rows = [
+    ['종목당 상한 (7월 계획)', pp(R.singleStockMax,0), '한온 ' + pp((P.byBlock.HANON||0)/tot), '한온 ' + pp(tg('HANON')/tgtTot), tg('HANON')/tgtTot > R.singleStockMax],
+    ['KRX 신호매매 블록 (7월 계획)', pp(R.krxBlockMax,0), pp((P.byBlock.HANON||0)/tot), pp(tg('HANON')/tgtTot), tg('HANON')/tgtTot > R.krxBlockMax],
+    ['현금·단기채 (7월 D블록 / 원칙 5)', pp(R.cashMin,0) + ' / 25~30%', pp((P.cash+P.inflowPending)/tot), '0% (예탁금 제외)', true],
+    ['반도체 실효 노출 (SOXL ×3)', '규칙 없음 — 참고', pp(((P.byBlock.SEMI||0)+3*(P.byBlock.LEV||0))/tot), pp(semiEff), null],
+    ['레버리지 재원 (월급 한정)', '월급 저축', R.leverageFundedBy === 'salary' ? '월급' : '보증금', R.leverageFundedBy === 'salary' ? '월급' : '보증금', R.leverageFundedBy !== 'salary']
+  ];
+  document.getElementById('ruleTbl').innerHTML = '<table><tr><th>규칙</th><th>기준</th><th>현재</th><th>목표안</th><th>판정</th></tr>' + rows.map(r => '<tr><td class="l">' + r[0] + '</td><td class="c">' + r[1] + '</td><td class="c">' + r[2] + '</td><td class="c">' + r[3] + '</td><td class="c">' + (r[4] === null ? badge('gray','참고') : (r[4] ? badge('red','규칙 초과') : badge('green','정상'))) + '</td></tr>').join('') + '</table>';
+  const heldPos = P.pos.filter(p => p.status === 'held' && p.cost > 0).sort((a,b) => a.pnlPct - b.pnlPct);
+  document.getElementById('ruleTbl').innerHTML += '<div class="sec" style="margin-top:14px">종목별 손절 기준 (' + pp(R.stopLoss,0) + ') · 포트 서킷브레이커 (' + pp(R.portfolioBreaker,0) + ')</div><table><tr><th>종목</th><th>평가액</th><th>손익률</th><th>판정</th></tr>' +
+    heldPos.map(p => '<tr><td class="l">' + esc(p.name) + ' <span class="mu">' + p.ticker + '</span></td><td>' + won(p.value) + '</td><td class="' + cls(p.pnlPct) + '">' + pct(p.pnlPct) + '</td><td class="c">' + (p.pnlPct/100 <= R.stopLoss ? badge('red','손절 기준 도달') : (p.pnlPct/100 <= R.stopLoss/2 ? badge('amber','주의') : badge('green','이내'))) + '</td></tr>').join('') +
+    '<tr><td class="l"><b>보유분 합계</b></td><td>' + won(P.invested) + '</td><td class="' + cls(P.invested-P.cost) + '">' + pct((P.invested/P.cost-1)*100) + '</td><td class="c">' + ((P.invested/P.cost-1) <= R.portfolioBreaker ? badge('red','서킷브레이커') : badge('green','이내')) + '</td></tr></table><div class="small">원화 손익은 현재 환율로 환산한 값(매수 당시 환율 미반영).</div>';
+  // 스트레스: 목표안 기준
+  const st = CONFIG.stress;
+  const lines = CONFIG.target.map(t => ({n:t.name, amt:t.amount, sh:st[t.id]||0, loss:t.amount*(st[t.id]||0)}));
+  const loss = lines.reduce((s,l)=>s+l.loss,0);
+  const S = savingsToDate();
+  const sav2028 = 24 * CONFIG.savings.monthly, sav2030 = 48 * CONFIG.savings.monthly;
+  document.getElementById('stressTbl').innerHTML = '<table><tr><th>블록</th><th>목표 금액</th><th>충격</th><th>손실</th></tr>' + lines.map(l => '<tr><td class="l">' + l.n + '</td><td>' + eok(l.amt) + '</td><td class="dn">' + pct(l.sh*100,0) + '</td><td class="dn">' + man(l.loss) + '원</td></tr>').join('') +
+    '<tr><td class="l"><b>합계</b></td><td>' + eok(tgtTot) + '</td><td class="dn">' + pct(loss/tgtTot*100) + '</td><td class="dn"><b>' + man(loss) + '원</b></td></tr></table>';
+  document.getElementById('stressNote').innerHTML = st.label + ' 시 포트폴리오 약 ' + eok(tgtTot + loss) + ' 잔존. 보증금 완충(저축): 현재 ' + eok(S.v) + (S.est?'(추정)':'') + ' · 2028-10 약 ' + eok(sav2028) + ' · 2030-10 약 ' + eok(sav2030) + '. 상환은 기본 경로에서 다음 계약 보증금으로 이뤄지므로, 이 손실은 강제 매도가 아니라 역전세 완충 축소로 작용한다.';
+  document.getElementById('ruleLog').innerHTML = '<table><tr><th>날짜</th><th>규칙</th><th>변경</th><th>사유</th></tr>' + RULE_LOG.map(r => '<tr><td class="c">' + r.date + '</td><td class="c">' + esc(r.rule) + '</td><td class="l">' + esc(r.change) + '</td><td class="l">' + esc(r.reason) + '</td></tr>').join('') + '</table>';
+}
+
+function renderLease(P){
+  const L = CONFIG.lease, S = savingsToDate();
+  const dTo = s => daysBetween(today, parseD(s));
+  const sav2028 = 24 * CONFIG.savings.monthly, cap = L.deposit * L.renewalCapPct / 100;
+  document.getElementById('leaseKpi').innerHTML =
+    kpi('반환할 보증금', eok(L.deposit), '갱신 시 최대 ' + eok(L.deposit + cap) + ' (5% 증액)', 'var(--gold)') +
+    kpi('계약 만기 · 갱신', L.renewalDate, 'D-' + dTo(L.renewalDate) + ' · 증액 최대 ' + eok(cap) + ' 유입', 'var(--hon)') +
+    kpi('반환 또는 재계약', L.finalReturn, 'D-' + dTo(L.finalReturn), 'var(--amber)') +
+    kpi('본인 거주 전세 만기', L.ownLeaseEnd, '본인 몫 ' + eok(L.ownLeaseOwnMoney) + ' · 월세 전환 시 월 저축 감소', 'var(--cash)');
+  // 2028-10: 시세 하락이면 증액분도 없음 → 저축만. 2030-10: 2028 증액분(현금 보관 가정) + 저축 48개월, 반환액 6.825억 기준
+  const buf2028 = sav2028, buf2030 = 48 * CONFIG.savings.monthly + cap;
+  const drops = [0.05, 0.10, 0.15, 0.20, 0.30];
+  document.getElementById('leaseTbl').innerHTML = '<table><tr><th>재계약 시세 하락</th><th>2028-10 차액 (6.5억 기준)</th><th>2028-10 완충 (저축 24개월)</th><th>2030-10 차액 (증액 후 기준)</th><th>2030-10 완충 (저축 48개월 + 증액분)</th></tr>' +
+    drops.map(x => { const gap28 = L.deposit * x, gap = (L.deposit + cap) * x; return '<tr><td class="c">−' + (x*100) + '%</td><td>' + eok(gap28) + '</td><td class="c">' + (buf2028 >= gap28 ? badge('green','커버 ' + pp(buf2028/gap28,0)) : badge('red','부족 ' + eok(gap28-buf2028))) + '</td><td>' + eok(gap) + '</td><td class="c">' + (buf2030 >= gap ? badge('green','커버 ' + pp(buf2030/gap,0)) : badge('red','부족 ' + eok(gap-buf2030))) + '</td></tr>'; }).join('') + '</table>' +
+    '<div class="small">완충은 저축만 계산(포트폴리오 제외). 월세 전환 시 월 저축이 줄면 이 표의 완충도 줄어든다. 현재 저축 누계 ' + eok(S.v) + (S.est ? ' (추정)' : '') + '.</div>';
+  document.getElementById('evTbl').innerHTML = '<table><tr><th>날짜</th><th>D-day</th><th>구분</th><th>이벤트</th></tr>' + EVENTS.map(e => { const d = dTo(e.date); return '<tr' + (d >= 0 && d <= 30 ? ' style="background:#C9A84C1A"' : '') + '><td class="c">' + e.date + '</td><td class="c">' + (d >= 0 ? 'D-' + d : '지남') + '</td><td class="c">' + e.kind + '</td><td class="l">' + esc(e.title) + '</td></tr>'; }).join('') + '</table>';
+}
+
+function renderHold(P){
+  document.getElementById('holdTbl').innerHTML = '<table><tr><th>종목</th><th>블록</th><th>상태</th><th>통화</th><th>수량</th><th>평단</th><th>시세 출처</th><th>평가액(원)</th></tr>' +
+    P.pos.map(p => '<tr><td class="l">' + esc(p.name) + '</td><td class="c">' + p.block + '</td><td class="c">' + p.status + '</td><td class="c">' + p.ccy + '</td><td>' + (p.qty||0).toLocaleString() + '</td><td>' + (p.avg||0).toLocaleString() + '</td><td class="c">' + p.src + '</td><td>' + won(p.value) + '</td></tr>').join('') +
+    CASH.map(c => '<tr><td class="l">' + esc(c.label) + '</td><td class="c">CASH</td><td class="c">held</td><td class="c">KRW</td><td></td><td></td><td class="c">manual</td><td>' + won(c.krw) + '</td></tr>').join('') + '</table>';
+  document.getElementById('tradeTbl').innerHTML = TRADES.length ? '<table><tr><th>날짜</th><th>종목</th><th>구분</th><th>수량</th><th>가격</th><th>메모</th></tr>' + TRADES.map(t => '<tr><td class="c">' + t.date + '</td><td class="c">' + t.ticker + '</td><td class="c">' + t.side + '</td><td>' + t.qty.toLocaleString() + '</td><td>' + (t.ccy==='USD'?'$':'') + t.price.toLocaleString() + '</td><td class="l">' + esc(t.note||'') + '</td></tr>').join('') + '</table>' : '<div class="small">체결 기록 없음</div>';
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  ⑧ 탭 · 초기화
+// ════════════════════════════════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  const i = +t.dataset.i;
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
+  document.querySelectorAll('.panel[id^="p"]').forEach(p => p.classList.toggle('active', p.id === 'p' + i));
+}));
+(async function(){
+  await loadAll();
+  const P = portfolio();
+  const steps = [renderOverview, renderSemi, renderHanon, renderMacro, renderRisk, renderLease, renderHold];
+  steps.forEach(f => { try { f(P); } catch(e) { console.error(f.name, e); } });
+})();
+</script>
+</body>
+</html>
