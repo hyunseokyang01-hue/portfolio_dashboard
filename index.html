@@ -220,7 +220,7 @@ const HOLDINGS = [
   // 2026-10-17 취합 (증권사별 내역 합산, 평단 = 가중평균 USD). 시세는 KRX·반도체 대시보드·prices.json(Yahoo 일간) 중 최신값 자동 사용
   // manualPrice/manualDate = 2026-10-16 종가 — 자동 시세가 없을 때만 쓰이는 대체값
   // src "semi": 반도체 대시보드 시세가 manualDate보다 새로우면 그 값을 사용
-  {name:"Intel", ticker:"INTC", block:"SEMI", src:"semi", ccy:"USD", qty:270.81, avg:104.9068, manualPrice:86.96, manualDate:"20261023", status:"held", note:"계좌1 183.91주 @$112.99 + 계좌2 86.90주 @$87.80 (10/26 증권사 기준)"},
+  {name:"Intel", ticker:"INTC", block:"SEMI", src:"semi", ccy:"USD", qty:435.81, avg:97.9315, manualPrice:86.96, manualDate:"20261023", status:"held", note:"계좌1 183.91주 @$112.99 + 계좌2 86.90주 @$87.80 (10/26 오전 증권사 기준) + 10/26 저녁 165주 @$86.4832"},
   {name:"Micron Technology", ticker:"MU", block:"SEMI", src:"semi", ccy:"USD", qty:1.002, avg:1237.958, manualPrice:878.84, manualDate:"20261016", status:"held", note:"2개 계좌 합산"},
   {name:"Teradyne", ticker:"TER", block:"SEMI", src:"manual", ccy:"USD", qty:6.12115, avg:481.18, manualPrice:325.00, manualDate:"20261016", status:"held", note:"Yahoo 일간 (prices.json)"},
   {name:"Wolfspeed", ticker:"WOLF", block:"SEMI", src:"manual", ccy:"USD", qty:90, avg:37.57, manualPrice:23.22, manualDate:"20261016", status:"held", note:"Yahoo 일간 (prices.json)"},
@@ -231,16 +231,24 @@ const HOLDINGS = [
   {name:"iShares 20+ Year Treasury", ticker:"TLT", block:"USETC", src:"manual", ccy:"USD", qty:0.404, avg:78.34, manualPrice:80.05, manualDate:"20261016", status:"held"},
   {name:"Momentus", ticker:"MNTS", block:"USETC", src:"manual", ccy:"USD", qty:6, avg:21.79, manualPrice:2.61, manualDate:"20261016", status:"held"},
   {name:"한온시스템", ticker:"018880", block:"HANON", src:"krx", ccy:"KRW", qty:54550, avg:3630, status:"held", note:"10/26 증권사 기준 (기존 11주 포함)"},
-  {name:"한국토지신탁", ticker:"034830", block:"KRETC", src:"krx", ccy:"KRW", qty:10, avg:1106, status:"held"},
+  {name:"한국토지신탁", ticker:"034830", block:"KRETC", src:"krx", ccy:"KRW", qty:12, avg:1088.67, status:"held", note:"기존 10주 @1,106 + 10/26 주식 모으기 2주 @1,002"},
   {name:"SOXL", ticker:"SOXL", block:"LEV", src:"manual", ccy:"USD", qty:0, avg:0, manualPrice:93.67, manualDate:"20261016", status:"planned", note:"예탁금 대기"}
 ];
 // 현금성 (KRW 환산)
 const CASH = [
-  {label:"보증금 유입 잔액 (2.5억 − 한온 약 1.98억 − 인텔 약 0.1억, 추정)", krw:42000000}
+  // 2026-10-26 현금 정산 (보수적 기준). 투자 주식 대금은 계좌 잔액에서 이미 차감됨
+  //   계좌 잔액 359,064,046 − 세입자 보증금 잔금 342,000,000 − 장기수선충당금 추정 5,250,000(보수적, 2018~ 월 5만×105개월)
+  //   = 11,814,046 + 10월 월급 5,367,077 = 17,181,123
+  //   − 10월 지출 8,312,008 (전세 이자 1,155,680 / 대출 이자 1,050,000 / 퇴직연금 200,000 / 대출 이자2 78,631 / 대출 이자3 40,000
+  //       / 곗돈 10,000 / 관리비 80,000 / 아빠 생일 500,000 / 카드1 4,409,797 / 카드2 444,931 / 카드3 342,969 / 카드4 0)
+  //   − 도배비 1,500,000 = 7,369,115
+  {label:"가용 현금 (10/26 정산 후, 보수적 — 장충금 525만·도배비 150만 차감)", krw:7369115}
 ];
 const TRADES = [
   {date:"2026-10-26", ticker:"018880", side:"BUY", qty:54539, price:3630.0, ccy:"KRW", note:"약 1.98억 매수 — 보유 54,550주 @3,630원(증권사 평단)에서 기존 11주 @3,840 역산"},
-  {date:"2026-10-26", ticker:"INTC", side:"BUY", qty:86.90, price:87.80, ccy:"USD", note:"계좌2 기준 (약 1천만원)"}
+  {date:"2026-10-26", ticker:"INTC", side:"BUY", qty:86.90, price:87.80, ccy:"USD", note:"계좌2 기준 (약 1천만원)"},
+  {date:"2026-10-26", ticker:"INTC", side:"BUY", qty:165, price:86.4832, ccy:"USD", note:"저녁 체결 5주 + 160주 (약 1,890만원, 환율 1,324.30 가정)"},
+  {date:"2026-10-26", ticker:"034830", side:"BUY", qty:2, price:1002, ccy:"KRW", note:"주식 모으기"}
 ];
 const RULE_LOG = [
   {date:"2026-10-26", rule:"종목 상한", change:"한온시스템 2.0억 매수 — 목표안 1.0억, 종목 상한 15% 대비 초과 집행", reason:"사유 미기재 — 기록 필요"},
