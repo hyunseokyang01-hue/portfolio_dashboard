@@ -108,6 +108,12 @@ svg text{font-family:inherit}
   <div id="hanChart"></div>
   <div class="sec">진입 전 정한 조건 — 자동 판정</div>
   <div class="tw" id="hanTrig"></div>
+  <div class="sec">분석 요약 — 3Q26 실적·IR·연기금 백테스트 반영</div>
+  <div class="tw" id="hanAnal"></div>
+  <div class="sec">매도 계획 — Base 기준, 2028.09까지 전량 매도</div>
+  <div class="tw" id="hanPlan"></div>
+  <div class="sec">잔여 수주(목표의 46%) 발표 시 — 1차 매도 수량 판정</div>
+  <div class="tw" id="hanOrder"></div>
 </div>
 
 <div class="panel" id="p3">
@@ -160,7 +166,7 @@ svg text{font-family:inherit}
 //  ① 설정 — 세션에서 갱신하는 값 (보유·현금·규칙·일정)
 // ════════════════════════════════════════════════════════════════════
 const CONFIG = {
-  updated: "2026-10-26",
+  updated: "2026-11-08",
   owner: "Hyunseok",
   fxFallback: 1340.95,               // 매크로 시트 실패 시 USD/KRW
   inflow: {amount: 250000000, date: "2026-10-26", label: "세입자 보증금 유입"},
@@ -258,13 +264,64 @@ const EVENTS = [
   {date:"2026-10-19", title:"반도체 대시보드 주간 갱신 (10/16 종가 반영)", kind:"데이터"},
   {date:"2026-10-26", title:"세입자 보증금 2.5억 유입", kind:"현금"},
   {date:"2026-11-05", title:"한온시스템 3Q 잠정실적 발표", kind:"한온"},
+  {date:"2026-11-16", title:"한온 3Q 분기보고서 제출 기한 — 영업외 손실 2,760억·자본 감소 내역 확인", kind:"한온"},
+  {date:"2026-12-31", title:"한온 잔여 수주(목표 $13억 중 $5.97억) 발표 예상 — 올해 중 또는 2027.1~2월", kind:"한온"},
   {date:"2027-01-11", title:"한앤코 풋옵션 행사기간 개시 (~02.11, 5,200원)", kind:"한온"},
+  {date:"2027-02-05", title:"한온 4Q·연간 실적 발표(예상) — 1차 매도 판단 (4,600원 / 30% 알림 설정)", kind:"한온"},
+  {date:"2028-02-15", title:"한온 2027 연간 실적 발표(예상) — 2차 매도 (Base 5,000원)", kind:"한온"},
+  {date:"2028-08-10", title:"한온 2Q28 실적 후 — 3차 매도 (Base 4,600원)", kind:"한온"},
+  {date:"2028-09-30", title:"한온 전량 매도 마감 (가정)", kind:"한온"},
   {date:"2028-04-20", title:"비트코인 반감기 (7월 계획 기준점)", kind:"참고"},
   {date:"2028-10-26", title:"세입자 계약 만기 → 갱신 (5% 이내 증액, 최대 약 0.33억)", kind:"보증금"},
   {date:"2028-10-30", title:"본인 거주 전세 만기 (본인 몫 0.73억, 월세 전환 검토)", kind:"현금"},
   {date:"2028-11-01", title:"7월 계획 2년차 게이트 — 누적 성과 점검", kind:"게이트"},
   {date:"2030-10-26", title:"세입자 보증금 반환 또는 재계약", kind:"보증금"}
 ];
+
+// 한온시스템 분석·매도 계획 (2026-11-08 세션 반영). 규칙(CONFIG.rules / hanonTriggers)은 건드리지 않음.
+// 태그: [실제] 공시·IR·KRX 확인 / [계산] 실제 기반 계산 / [추정] / [가정]
+const HANON_PLAN = {
+  asOf: "2026-11-08",
+  docs: "프로젝트 문서: 한온시스템_분석_업데이트_3Q26.md · 연기금_집중매집_백테스트_2Y.md",
+  planQty: 57000,           // 사용자 언급 보유 수량(약 5.7만주). HOLDINGS 기록(54,550주)과 다름 — 확인 필요
+  avg: 3630,
+  feeRate: 0.0017,          // 거래세·수수료 가정
+  appAlert: {price: 4600, sellPct: 30, note: "주식 앱 자동 매도 설정(사용자): 4,600원 도달 시 30% 매도"},
+  summary: [
+    ["3Q26 실적 [실제]", "매출 2조 6,569억(-1.8% YoY) · 영업이익 1,206억(OPM 4.5%, 컨센 1,120억 상회) · 지배순이익 -1,430억(영업외 약 -2,760억)"],
+    ["재무 [실제]", "순차입금 2조 6,450억 · 순차입금/EBITDA 2.28배(연말 2.90) · EBITDA/순이자 7.47배 · 지배자본 3.55조(반기 대비 -5,600억) → BPS 약 3,460원"],
+    ["FCF [계산/추정]", "1Q25 -3,210억 → 2Q26 +1,529억, 3Q26 추정 +800~1,600억 (3분기 연속 흑자 가능성, 증가 여부 미확인 · 11/16 분기보고서 확인)"],
+    ["수주 [실제]", "9월까지 $7.03억 = 목표 $13억의 54% (재수주 $4.53억 · 신규 $2.50억). 잔여 $5.97억 올해 중 또는 2027.1~2월 발표 예상"],
+    ["신사업 [실제]", "ESS/PCS·SST 개발 중, 데이터센터 검토 중(2027 시제품) → 본격 성장은 2030+ 로드맵"],
+    ["밸류 (3,110원) [계산]", "P/B 약 0.90배 · EV/EBITDA(TTM) 약 5.2배 · 2027E P/E 약 10배 · ROIC 약 4.8% < WACC 6~7%"],
+    ["연기금 백테스트 [계산]", "30일 집중매집 후 1년 지수 이긴 비율 28%. 강한 매집(상장 1.5%+, 5구간+) 6개월 51%·1년 31%. 승자는 반도체 업종 쏠림 → 매집은 하단 지지 요인 정도"],
+    ["시나리오 2029말 [가정]", "Bear 20% 2,500~2,800 / Base 60% 5,000~5,800 / Bull 20% 8,800~9,900 → 기대 약 5,650원"],
+    ["연말·12개월 [가정]", "2026.12.30 약 3,400원(2,850~4,100) · 12개월 3,800~4,500원"]
+  ],
+  // Base 기준, 2028-09 전량 매도. 1차 수량은 잔여 수주 결과로 조절
+  tranches: [
+    {n:"1차", when:"2027-02 (4Q·연간 실적 + 풋옵션 막바지) / 수주 발표 후 2주 내 4,500원+", price:4600, qty:19000},
+    {n:"2차", when:"2028-02 (2027 연간 실적)", price:5000, qty:19000},
+    {n:"3차", when:"2028-08 (2Q28 실적 후)", price:4600, qty:19000}
+  ],
+  outcomes: [   // 잔여 수주 발표 결과별 1차 수량 [가정]
+    {k:"대형", cond:"연간 누적 $12억+ · 신규 비중↑", prob:35, scen:"Bear 10 / Base 55 / Bull 35", q1:"0.95만주 (1/6)", ev:"+8,960만"},
+    {k:"부분", cond:"$9~12억", prob:40, scen:"Bear 20 / Base 65 / Bull 15", q1:"1.9만주 (1/3)", ev:"+6,040만"},
+    {k:"미달", cond:"$9억 미만 · eM 실패", prob:25, scen:"Bear 40 / Base 55 / Bull 5", q1:"3.8만주 (2/3) — 4,600원 미도달 시 첫 반등에", ev:"+5,020만"}
+  ],
+  paths: [      // 1차 4,600원 매도 후 경로별 결과 (1/3씩 기준)
+    {k:"Bull", sells:"4,600 → 6,500(2028.02) → 7,200(2028.08)", pnl:"+1억 4,020만 (+68%)", irr:"약 56%"},
+    {k:"Base", sells:"4,600 → 5,000(2028.02) → 4,600(2028.08)", pnl:"+6,243만 (+30%)", irr:"약 27%"},
+    {k:"Bear", sells:"4,600 → 3,200(2027.05) → 2,750(2027.11)", pnl:"-680만 (-3%)", irr:"약 -6%"}
+  ],
+  reduceIf: [
+    "11/16 분기보고서에서 영업외 손실이 반복성(이자·환헤지)으로 확인",
+    "eM/잔여 수주 미달 + 2027 OPM 가이던스 4.5% 미만",
+    "종가 2,830원(유상증자가)·2,755원(52주 저점) 하향 이탈 지속",
+    "2027년 말까지 4,500원 미도달 시 계획 재검토"
+  ],
+  pending: "3Q 결과는 영업이익 상회·순이익 적자로 혼재 — hanonTriggers.q3Status(pass/fail)는 사용자 판단 대기로 pending 유지"
+};
 
 // ════════════════════════════════════════════════════════════════════
 //  ② 소스
@@ -583,7 +640,7 @@ function renderSemi(P){
 
 function renderHanon(P){
   const H = hanon();
-  if(!H){ document.getElementById('p2note').textContent = 'KRX 대시보드 로드 실패: ' + (D.err.krx||''); return; }
+  if(!H){ document.getElementById('p2note').textContent = 'KRX 대시보드 로드 실패: ' + (D.err.krx||''); renderHanonPlan(null); return; }
   document.getElementById('p2note').textContent = 'KRX 대시보드 ' + fd8(H.lastDate) + ' 기준 (일간 갱신)';
   const pos = P.pos.find(p => p.ticker === '018880');
   const tgt = (CONFIG.target.find(t=>t.id==='HANON')||{}).amount;
@@ -606,6 +663,34 @@ function renderHanon(P){
   ];
   document.getElementById('hanTrig').innerHTML = '<table><tr><th>구분</th><th>조건</th><th>판정</th><th>현재</th></tr>' + rows.map(r => '<tr><td class="c">' + r[0] + '</td><td class="l">' + r[1] + '</td><td class="c">' + (r[2] ? badge(r[0]==='무효화'?'red':'amber','발동') : badge('gray','미발동')) + '</td><td class="l small">' + r[3] + '</td></tr>').join('') + '</table>' +
     '<div class="small" style="margin-top:6px">기준값은 CONFIG.hanonTriggers에서 바꾼다. 상세 수급·매물대·밸류는 <a href="' + SRC.krx.page + '" target="_blank">KRX 대시보드 한온 탭 섹션 E</a>.</div>';
+  renderHanonPlan(px);
+}
+
+function renderHanonPlan(px){
+  const HP = HANON_PLAN;
+  document.getElementById('hanAnal').innerHTML = '<table><tr><th>항목</th><th>내용</th></tr>' +
+    HP.summary.map(r => '<tr><td class="c">' + esc(r[0]) + '</td><td class="l small">' + esc(r[1]) + '</td></tr>').join('') + '</table>' +
+    '<div class="small" style="margin-top:6px">' + esc(HP.asOf) + ' 기준 · ' + esc(HP.docs) + ' · ' + esc(HP.pending) + '</div>';
+  let cum = 0;
+  const net = p => p * (1 - HP.feeRate);
+  const rows = HP.tranches.map(t => {
+    const g = t.qty * (net(t.price) - HP.avg); cum += g;
+    const dist = px ? pct((t.price / px - 1) * 100) : '—';
+    const hit = px && px >= t.price;
+    return '<tr><td class="c">' + t.n + '</td><td class="l small">' + esc(t.when) + '</td><td class="c">' + t.price.toLocaleString() + '원</td><td class="c">' + t.qty.toLocaleString() + '주</td><td class="c ' + cls(g) + '">' + man(g) + '</td><td class="c ' + cls(cum) + '">' + man(cum) + '</td><td class="c">' + (hit ? badge('amber','도달') : dist) + '</td></tr>';
+  }).join('');
+  const a = HP.appAlert;
+  document.getElementById('hanPlan').innerHTML =
+    '<table><tr><th>단계</th><th>시점·계기</th><th>매도가</th><th>수량</th><th>손익</th><th>누적</th><th>현재가 대비</th></tr>' + rows + '</table>' +
+    '<div class="small" style="margin-top:6px">' + badge(px && px >= a.price ? 'amber' : 'gray', px && px >= a.price ? '알림가 도달' : '알림 대기') + ' ' + esc(a.note) +
+    ' (현재가 대비 ' + (px ? pct((a.price / px - 1) * 100) : '—') + ', ' + HP.planQty.toLocaleString() + '주 기준 약 ' + Math.round(HP.planQty * a.sellPct / 100).toLocaleString() + '주). 평단 ' + HP.avg.toLocaleString() + '원, 거래비용 ' + (HP.feeRate * 100).toFixed(2) + '% 반영. 수량 ' + HP.planQty.toLocaleString() + '주는 사용자 언급 기준 — HOLDINGS 기록과 다름(확인 필요).</div>' +
+    '<table style="margin-top:8px"><tr><th>1차 후 경로</th><th>매도 흐름</th><th>총손익</th><th>연환산</th></tr>' +
+    HP.paths.map(p => '<tr><td class="c">' + p.k + '</td><td class="l small">' + esc(p.sells) + '</td><td class="c">' + esc(p.pnl) + '</td><td class="c">' + esc(p.irr) + '</td></tr>').join('') + '</table>' +
+    '<div class="small" style="margin-top:6px">가격과 무관하게 1/3씩 축소: ' + HP.reduceIf.map(esc).join(' · ') + '</div>';
+  document.getElementById('hanOrder').innerHTML =
+    '<table><tr><th>결과</th><th>판단 기준</th><th>확률</th><th>3년 시나리오</th><th>1차 수량</th><th>기대 손익</th></tr>' +
+    HP.outcomes.map(o => '<tr><td class="c">' + o.k + '</td><td class="l small">' + esc(o.cond) + '</td><td class="c">' + o.prob + '%</td><td class="c small">' + esc(o.scen) + '</td><td class="l small">' + esc(o.q1) + '</td><td class="c">' + esc(o.ev) + '</td></tr>').join('') + '</table>' +
+    '<div class="small" style="margin-top:6px">확률 가중 기대 손익 약 +6,810만 (1/3 고정 시 +6,270만). 발표 직후 확인: ① 연간 누적 $12억/$9억 기준선 ② 신규(재수주 제외) 비중 50% 이상 여부 ③ 다음 날 수급. 올해 중 발표 시 1차 시점도 앞당김.</div>';
 }
 
 function renderMacro(){
@@ -669,7 +754,7 @@ function renderLease(P){
   document.getElementById('leaseTbl').innerHTML = '<table><tr><th>재계약 시세 하락</th><th>2028-10 차액 (6.5억 기준)</th><th>2028-10 완충 (저축 24개월)</th><th>2030-10 차액 (증액 후 기준)</th><th>2030-10 완충 (저축 48개월 + 증액분)</th></tr>' +
     drops.map(x => { const gap28 = L.deposit * x, gap = (L.deposit + cap) * x; return '<tr><td class="c">−' + (x*100) + '%</td><td>' + eok(gap28) + '</td><td class="c">' + (buf2028 >= gap28 ? badge('green','커버 ' + pp(buf2028/gap28,0)) : badge('red','부족 ' + eok(gap28-buf2028))) + '</td><td>' + eok(gap) + '</td><td class="c">' + (buf2030 >= gap ? badge('green','커버 ' + pp(buf2030/gap,0)) : badge('red','부족 ' + eok(gap-buf2030))) + '</td></tr>'; }).join('') + '</table>' +
     '<div class="small">완충은 저축만 계산(포트폴리오 제외). 월세 전환 시 월 저축이 줄면 이 표의 완충도 줄어든다. 현재 저축 누계 ' + eok(S.v) + (S.est ? ' (추정)' : '') + '.</div>';
-  document.getElementById('evTbl').innerHTML = '<table><tr><th>날짜</th><th>D-day</th><th>구분</th><th>이벤트</th></tr>' + EVENTS.map(e => { const d = dTo(e.date); return '<tr' + (d >= 0 && d <= 30 ? ' style="background:#C9A84C1A"' : '') + '><td class="c">' + e.date + '</td><td class="c">' + (d >= 0 ? 'D-' + d : '지남') + '</td><td class="c">' + e.kind + '</td><td class="l">' + esc(e.title) + '</td></tr>'; }).join('') + '</table>';
+  document.getElementById('evTbl').innerHTML = '<table><tr><th>날짜</th><th>D-day</th><th>구분</th><th>이벤트</th></tr>' + [...EVENTS].sort((a,b) => a.date.localeCompare(b.date)).map(e => { const d = dTo(e.date); return '<tr' + (d >= 0 && d <= 30 ? ' style="background:#C9A84C1A"' : '') + '><td class="c">' + e.date + '</td><td class="c">' + (d >= 0 ? 'D-' + d : '지남') + '</td><td class="c">' + e.kind + '</td><td class="l">' + esc(e.title) + '</td></tr>'; }).join('') + '</table>';
 }
 
 function renderHold(P){
