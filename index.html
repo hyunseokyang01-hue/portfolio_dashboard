@@ -236,7 +236,7 @@ const HOLDINGS = [
   {name:"Invesco QQQ", ticker:"QQQ", block:"USETC", src:"manual", ccy:"USD", qty:0.094, avg:722.53, manualPrice:709.80, manualDate:"20261016", status:"held"},
   {name:"iShares 20+ Year Treasury", ticker:"TLT", block:"USETC", src:"manual", ccy:"USD", qty:0.404, avg:78.34, manualPrice:80.05, manualDate:"20261016", status:"held"},
   {name:"Momentus", ticker:"MNTS", block:"USETC", src:"manual", ccy:"USD", qty:6, avg:21.79, manualPrice:2.61, manualDate:"20261016", status:"held"},
-  {name:"한온시스템", ticker:"018880", block:"HANON", src:"krx", ccy:"KRW", qty:54550, avg:3630, status:"held", note:"10/26 증권사 기준 (기존 11주 포함)"},
+  {name:"한온시스템", ticker:"018880", block:"HANON", src:"krx", ccy:"KRW", qty:54562, avg:3630, status:"held", note:"11/8 사용자 확인 수량 54,562주 (10/26 증권사 기준 54,550주에서 정정, 평단 3,630원 유지)"},
   {name:"한국토지신탁", ticker:"034830", block:"KRETC", src:"krx", ccy:"KRW", qty:12, avg:1088.67, status:"held", note:"기존 10주 @1,106 + 10/26 주식 모으기 2주 @1,002"},
   {name:"SOXL", ticker:"SOXL", block:"LEV", src:"manual", ccy:"USD", qty:0, avg:0, manualPrice:93.67, manualDate:"20261016", status:"planned", note:"예탁금 대기"}
 ];
@@ -283,7 +283,7 @@ const EVENTS = [
 const HANON_PLAN = {
   asOf: "2026-11-08",
   docs: "프로젝트 문서: 한온시스템_분석_업데이트_3Q26.md · 연기금_집중매집_백테스트_2Y.md",
-  planQty: 57000,           // 사용자 언급 보유 수량(약 5.7만주). HOLDINGS 기록(54,550주)과 다름 — 확인 필요
+  planQty: 54562,           // 11/8 사용자 확인 보유 수량 (HOLDINGS와 일치)
   avg: 3630,
   feeRate: 0.0017,          // 거래세·수수료 가정
   appAlert: {price: 4600, sellPct: 30, note: "주식 앱 자동 매도 설정(사용자): 4,600원 도달 시 30% 매도"},
@@ -300,19 +300,19 @@ const HANON_PLAN = {
   ],
   // Base 기준, 2028-09 전량 매도. 1차 수량은 잔여 수주 결과로 조절
   tranches: [
-    {n:"1차", when:"2027-02 (4Q·연간 실적 + 풋옵션 막바지) / 수주 발표 후 2주 내 4,500원+", price:4600, qty:19000},
-    {n:"2차", when:"2028-02 (2027 연간 실적)", price:5000, qty:19000},
-    {n:"3차", when:"2028-08 (2Q28 실적 후)", price:4600, qty:19000}
+    {n:"1차", when:"2027-02 (4Q·연간 실적 + 풋옵션 막바지) / 수주 발표 후 2주 내 4,500원+", price:4600, qty:18187},
+    {n:"2차", when:"2028-02 (2027 연간 실적)", price:5000, qty:18187},
+    {n:"3차", when:"2028-08 (2Q28 실적 후)", price:4600, qty:18188}
   ],
   outcomes: [   // 잔여 수주 발표 결과별 1차 수량 [가정]
-    {k:"대형", cond:"연간 누적 $12억+ · 신규 비중↑", prob:35, scen:"Bear 10 / Base 55 / Bull 35", q1:"0.95만주 (1/6)", ev:"+8,960만"},
-    {k:"부분", cond:"$9~12억", prob:40, scen:"Bear 20 / Base 65 / Bull 15", q1:"1.9만주 (1/3)", ev:"+6,040만"},
-    {k:"미달", cond:"$9억 미만 · eM 실패", prob:25, scen:"Bear 40 / Base 55 / Bull 5", q1:"3.8만주 (2/3) — 4,600원 미도달 시 첫 반등에", ev:"+5,020만"}
+    {k:"대형", cond:"연간 누적 $12억+ · 신규 비중↑", prob:35, scen:"Bear 10 / Base 55 / Bull 35", q1:"9,094주 (1/6)", ev:"+8,577만"},
+    {k:"부분", cond:"$9~12억", prob:40, scen:"Bear 20 / Base 65 / Bull 15", q1:"18,187주 (1/3)", ev:"+5,767만"},
+    {k:"미달", cond:"$9억 미만 · eM 실패", prob:25, scen:"Bear 40 / Base 55 / Bull 5", q1:"36,375주 (2/3) — 4,600원 미도달 시 첫 반등에", ev:"+4,805만"}
   ],
   paths: [      // 1차 4,600원 매도 후 경로별 결과 (1/3씩 기준)
-    {k:"Bull", sells:"4,600 → 6,500(2028.02) → 7,200(2028.08)", pnl:"+1억 4,020만 (+68%)", irr:"약 56%"},
-    {k:"Base", sells:"4,600 → 5,000(2028.02) → 4,600(2028.08)", pnl:"+6,243만 (+30%)", irr:"약 27%"},
-    {k:"Bear", sells:"4,600 → 3,200(2027.05) → 2,750(2027.11)", pnl:"-680만 (-3%)", irr:"약 -6%"}
+    {k:"Bull", sells:"4,600 → 6,500(2028.02) → 7,200(2028.08)", pnl:"+1억 3,420만 (+68%)", irr:"약 56%"},
+    {k:"Base", sells:"4,600 → 5,000(2028.02) → 4,600(2028.08)", pnl:"+5,976만 (+30%)", irr:"약 27%"},
+    {k:"Bear", sells:"4,600 → 3,200(2027.05) → 2,750(2027.11)", pnl:"-651만 (-3%)", irr:"약 -6%"}
   ],
   reduceIf: [
     "11/16 분기보고서에서 영업외 손실이 반복성(이자·환헤지)으로 확인",
@@ -683,14 +683,14 @@ function renderHanonPlan(px){
   document.getElementById('hanPlan').innerHTML =
     '<table><tr><th>단계</th><th>시점·계기</th><th>매도가</th><th>수량</th><th>손익</th><th>누적</th><th>현재가 대비</th></tr>' + rows + '</table>' +
     '<div class="small" style="margin-top:6px">' + badge(px && px >= a.price ? 'amber' : 'gray', px && px >= a.price ? '알림가 도달' : '알림 대기') + ' ' + esc(a.note) +
-    ' (현재가 대비 ' + (px ? pct((a.price / px - 1) * 100) : '—') + ', ' + HP.planQty.toLocaleString() + '주 기준 약 ' + Math.round(HP.planQty * a.sellPct / 100).toLocaleString() + '주). 평단 ' + HP.avg.toLocaleString() + '원, 거래비용 ' + (HP.feeRate * 100).toFixed(2) + '% 반영. 수량 ' + HP.planQty.toLocaleString() + '주는 사용자 언급 기준 — HOLDINGS 기록과 다름(확인 필요).</div>' +
+    ' (현재가 대비 ' + (px ? pct((a.price / px - 1) * 100) : '—') + ', ' + HP.planQty.toLocaleString() + '주 기준 약 ' + Math.round(HP.planQty * a.sellPct / 100).toLocaleString() + '주). 평단 ' + HP.avg.toLocaleString() + '원, 거래비용 ' + (HP.feeRate * 100).toFixed(2) + '% 반영.</div>' +
     '<table style="margin-top:8px"><tr><th>1차 후 경로</th><th>매도 흐름</th><th>총손익</th><th>연환산</th></tr>' +
     HP.paths.map(p => '<tr><td class="c">' + p.k + '</td><td class="l small">' + esc(p.sells) + '</td><td class="c">' + esc(p.pnl) + '</td><td class="c">' + esc(p.irr) + '</td></tr>').join('') + '</table>' +
     '<div class="small" style="margin-top:6px">가격과 무관하게 1/3씩 축소: ' + HP.reduceIf.map(esc).join(' · ') + '</div>';
   document.getElementById('hanOrder').innerHTML =
     '<table><tr><th>결과</th><th>판단 기준</th><th>확률</th><th>3년 시나리오</th><th>1차 수량</th><th>기대 손익</th></tr>' +
     HP.outcomes.map(o => '<tr><td class="c">' + o.k + '</td><td class="l small">' + esc(o.cond) + '</td><td class="c">' + o.prob + '%</td><td class="c small">' + esc(o.scen) + '</td><td class="l small">' + esc(o.q1) + '</td><td class="c">' + esc(o.ev) + '</td></tr>').join('') + '</table>' +
-    '<div class="small" style="margin-top:6px">확률 가중 기대 손익 약 +6,810만 (1/3 고정 시 +6,270만). 발표 직후 확인: ① 연간 누적 $12억/$9억 기준선 ② 신규(재수주 제외) 비중 50% 이상 여부 ③ 다음 날 수급. 올해 중 발표 시 1차 시점도 앞당김.</div>';
+    '<div class="small" style="margin-top:6px">확률 가중 기대 손익 약 +6,510만 (1/3 고정 시 +6,000만). 발표 직후 확인: ① 연간 누적 $12억/$9억 기준선 ② 신규(재수주 제외) 비중 50% 이상 여부 ③ 다음 날 수급. 올해 중 발표 시 1차 시점도 앞당김.</div>';
 }
 
 function renderMacro(){
