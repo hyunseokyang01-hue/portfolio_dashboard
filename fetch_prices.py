@@ -21,7 +21,7 @@ def last_close(sym):
     return {"price": round(c, 4), "date": h.index[-1].strftime("%Y%m%d"), "chg": round((c / p - 1) * 100, 2) if p else None}
 
 out = {"updatedAt": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"), "source": "Yahoo Finance via yfinance", "prices": {}, "failed": []}
-for t in tickers + ["KRW=X"]:
+for t in tickers + ["KRW=X", "EURKRW=X"]:  # EURKRW: 한온 환산손익 추적(2026-11-12)
     for attempt in range(2):
         try:
             out["prices"][t] = last_close(t); print(t, out["prices"][t]); break

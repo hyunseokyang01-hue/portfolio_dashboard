@@ -266,6 +266,7 @@ const EVENTS = [
   {date:"2026-11-05", title:"한온시스템 3Q 잠정실적 발표", kind:"한온"},
   {date:"2026-11-12", title:"한온 3Q 분기보고서 제출(완료) — 순손실 원인 환율 환산손실 확인, 3Q FCF +1,556억", kind:"한온"},
   {date:"2026-12-31", title:"한온 잔여 수주(목표 $13억 중 $5.97억) 발표 예상 — 올해 중 또는 2027.1~2월", kind:"한온"},
+  {date:"2026-12-31", title:"한온 4Q 분기말 환율 확인 — 원/달러 3Q말 1,352.8원 대비 방향 = 4Q 환산손익 방향", kind:"한온"},
   {date:"2027-01-11", title:"한앤코 풋옵션 행사기간 개시 (~02.11, 5,200원)", kind:"한온"},
   {date:"2027-02-05", title:"한온 4Q·연간 실적 발표(예상) — 1차 매도 판단 (4,600원 / 30% 알림 설정)", kind:"한온"},
   {date:"2028-02-15", title:"한온 2027 연간 실적 발표(예상) — 2차 매도 (Base 5,000원)", kind:"한온"},
@@ -282,6 +283,10 @@ const EVENTS = [
 // 태그: [실제] 공시·IR·KRX 확인 / [계산] 실제 기반 계산 / [추정] / [가정]
 const HANON_PLAN = {
   asOf: "2026-11-12",
+  pensionBase: 22170000,    // 8/3~11/6 연기금 누적 순매수 추정치 [추정] — 매도 전환 판정 기준
+  pensionDumpPct: 10,       // 30일 내 순매도일 합계가 매집분의 이 비율을 넘으면 '물량 털기' 경고
+  fx: {usdBase: 1352.8, baseDate: "2026-09-30", eurBase: null, sensEok: 200,
+       note: "3Q 환율 관련 손실 약 2,260억 ÷ 원화 절상 약 11% → 원화 1% 변동당 순이익 약 200억 [추정]. 원화 강세(환율 하락) = 환산손실"},
   docs: "프로젝트 문서: 한온시스템_분석_업데이트_3Q26.md · 연기금_집중매집_백테스트_2Y.md",
   planQty: 54562,           // 11/8 사용자 확인 보유 수량 (HOLDINGS와 일치)
   avg: 3630,
@@ -661,18 +666,29 @@ function renderHanon(P){
     ['무효화', '3Q 실적이 흑자전환 경로를 깨는 경우', T.q3Status === 'fail', '상태: ' + T.q3Status + ' (11/5 발표)'],
     ['매도 검토', '매물대 ' + T.resistLow.toLocaleString() + '~4,700원 도달', px >= T.resistLow, '현재가와 거리 ' + pct((T.resistLow/px-1)*100)],
     ['매도 검토', '한앤코 풋옵션선 ' + T.putLine.toLocaleString() + '원 도달', px >= T.putLine, '현재가와 거리 ' + pct((T.putLine/px-1)*100)],
-    ['주의', '연기금 순매수 + 공매도 잔고 증가 (헤지 가능성)', H.cum7 > 0 && H.sChg > 0, '7일 연기금 ' + man(H.cum7) + '주 · 잔고 ' + man(H.sChg) + '주']
+    ['주의', '연기금 순매수 + 공매도 잔고 증가 (헤지 가능성)', H.cum7 > 0 && H.sChg > 0, '7일 연기금 ' + man(H.cum7) + '주 · 잔고 ' + man(H.sChg) + '주'],
+    ['주의', '연기금 30일 누적 순매수 마이너스 전환 (6월 하락 직전 신호)', H.cum30 < 0, '30일 누적 ' + man(H.cum30) + '주'],
+    ['주의', '연기금 30일 순매도일 합계 > 매집분(' + man(HANON_PLAN.pensionBase) + '주)의 ' + HANON_PLAN.pensionDumpPct + '%', -H.series.reduce((s,x) => s + Math.min(x.v,0), 0) > HANON_PLAN.pensionBase * HANON_PLAN.pensionDumpPct / 100, '순매도일 합계 ' + man(H.series.reduce((s,x) => s + Math.min(x.v,0), 0)) + '주 (기준 ' + man(-HANON_PLAN.pensionBase * HANON_PLAN.pensionDumpPct / 100) + '주)']
   ];
   document.getElementById('hanTrig').innerHTML = '<table><tr><th>구분</th><th>조건</th><th>판정</th><th>현재</th></tr>' + rows.map(r => '<tr><td class="c">' + r[0] + '</td><td class="l">' + r[1] + '</td><td class="c">' + (r[2] ? badge(r[0]==='무효화'?'red':'amber','발동') : badge('gray','미발동')) + '</td><td class="l small">' + r[3] + '</td></tr>').join('') + '</table>' +
     '<div class="small" style="margin-top:6px">기준값은 CONFIG.hanonTriggers에서 바꾼다. 상세 수급·매물대·밸류는 <a href="' + SRC.krx.page + '" target="_blank">KRX 대시보드 한온 탭 섹션 E</a>.</div>';
   renderHanonPlan(px);
 }
 
+function fxWatch(HP){
+  const P = (D.px && D.px.prices) || {}, u = P['KRW=X'], e = P['EURKRW=X'], F = HP.fx;
+  const chg = u ? (u.price / F.usdBase - 1) * 100 : null;
+  const imp = chg != null ? chg * F.sensEok : null;
+  return '<table style="margin-top:8px"><tr><th>환율 추적</th><th>현재</th><th>3Q말(' + F.baseDate + ') 대비</th><th>4Q 환산손익 추정</th></tr>' +
+    '<tr><td class="c">원/달러</td><td class="c">' + (u ? u.price.toLocaleString() + ' (' + fd8(u.date) + ')' : '—') + '</td><td class="c">' + (chg != null ? pct(chg) : '—') + '</td><td class="c ' + cls(imp) + '">' + (imp != null ? (imp > 0 ? '+' : '') + Math.round(imp).toLocaleString() + '억' : '—') + '</td></tr>' +
+    '<tr><td class="c">원/유로</td><td class="c">' + (e ? e.price.toLocaleString() + ' (' + fd8(e.date) + ')' : '수집 대기') + '</td><td class="c">' + (F.eurBase && e ? pct((e.price / F.eurBase - 1) * 100) : '기준값 미입력') + '</td><td class="c small">달러 기준만 반영</td></tr></table>' +
+    '<div class="small" style="margin-top:4px">' + esc(F.note) + '</div>';
+}
 function renderHanonPlan(px){
   const HP = HANON_PLAN;
   document.getElementById('hanAnal').innerHTML = '<table><tr><th>항목</th><th>내용</th></tr>' +
     HP.summary.map(r => '<tr><td class="c">' + esc(r[0]) + '</td><td class="l small">' + esc(r[1]) + '</td></tr>').join('') + '</table>' +
-    '<div class="small" style="margin-top:6px">' + esc(HP.asOf) + ' 기준 · ' + esc(HP.docs) + ' · ' + esc(HP.pending) + '</div>';
+    '<div class="small" style="margin-top:6px">' + esc(HP.asOf) + ' 기준 · ' + esc(HP.docs) + ' · ' + esc(HP.pending) + '</div>' + fxWatch(HP);
   let cum = 0;
   const net = p => p * (1 - HP.feeRate);
   const rows = HP.tranches.map(t => {
