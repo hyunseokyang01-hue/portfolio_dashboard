@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-11-14 01:33 UTC",
+ "updatedAt": "2026-11-14 10:27 UTC",
  "source": "Yahoo Finance via yfinance",
  "prices": {
   "INTC": {
@@ -8,9 +8,9 @@
    "chg": -2.52
   },
   "MNTS": {
-   "price": 1.885,
-   "date": "20261112",
-   "chg": -4.8
+   "price": 1.8,
+   "date": "20261113",
+   "chg": -4.51
   },
   "MU": {
    "price": 778.31,
@@ -28,9 +28,9 @@
    "chg": -11.0
   },
   "SPHD": {
-   "price": 52.7,
-   "date": "20261112",
-   "chg": -0.36
+   "price": 53.16,
+   "date": "20261113",
+   "chg": 0.87
   },
   "TER": {
    "price": 249.55,
@@ -53,14 +53,14 @@
    "chg": -0.41
   },
   "WOLF": {
-   "price": 26.51,
-   "date": "20261112",
-   "chg": -4.23
+   "price": 24.83,
+   "date": "20261113",
+   "chg": -6.34
   },
   "KRW=X": {
-   "price": 1333.78,
-   "date": "20261113",
-   "chg": -0.19
+   "price": 1336.2,
+   "date": "20261114",
+   "chg": 0.18
   },
   "EURKRW=X": {
    "price": 1474.01,
