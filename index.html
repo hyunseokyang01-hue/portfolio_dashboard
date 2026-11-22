@@ -98,6 +98,12 @@ svg text{font-family:inherit}
   <div class="grid2" id="semiSignals"></div>
   <div class="sec">관심 종목 16개 (주간)</div>
   <div class="tw" id="semiTbl"></div>
+  <div class="sec">Layer 0.5 — 미국 동아시아 정책 (프리드먼 틀) · 시나리오</div>
+  <div class="tw" id="geoScen"></div>
+  <div class="sec">추적 일정 — 볼 신호와 시나리오 함의</div>
+  <div class="tw" id="geoWatch"></div>
+  <div class="sec">층별 함의 · 반증 신호</div>
+  <div class="tw" id="geoLayer"></div>
 </div>
 
 <div class="panel" id="p2">
@@ -285,8 +291,61 @@ const EVENTS = [
   {date:"2028-10-26", title:"세입자 계약 만기 → 갱신 (5% 이내 증액, 최대 약 0.33억)", kind:"보증금"},
   {date:"2028-10-30", title:"본인 거주 전세 만기 (본인 몫 0.73억, 월세 전환 검토)", kind:"현금"},
   {date:"2028-11-01", title:"7월 계획 2년차 게이트 — 누적 성과 점검", kind:"게이트"},
-  {date:"2030-10-26", title:"세입자 보증금 반환 또는 재계약", kind:"보증금"}
+  {date:"2030-10-26", title:"세입자 보증금 반환 또는 재계약", kind:"보증금"},
+  // 지정학 (GEO_PLAN.watch와 같은 ID — 동아시아 정책 감시 작업이 함께 갱신)
+  {date:"2026-12-15", title:"[W1] G20 마이애미(현지 12/14~15) 트럼프·시진핑 재회동 — 대만 문구·수출통제 완화 언급 여부", kind:"지정학"},
+  {date:"2026-12-18", title:"[W2] 마이크론 FQ1 FY27 실적(현지 12/17) — 2028 계약가·capex·HBM 가격", kind:"지정학"},
+  {date:"2026-12-26", title:"[W3] 일본 안보 3문서 개정(연말, 일자 추정) — 대만 유사시·반격능력·방산 수출", kind:"지정학"},
+  {date:"2027-01-04", title:"[W4] 미 120대 의회 개원(현지 1/3, 민주당 상·하원) — 수출통제 입법·트럼프 거래 조사", kind:"지정학"},
+  {date:"2027-01-10", title:"[W5] 미·중 부산 휴전·희토류 통제 유예 만료 — 연장/결렬", kind:"지정학"},
+  {date:"2027-01-30", title:"[W6] 인텔 4Q26 실적(1월 말, 일자 추정) — 14A 고객 확정·애플 공식화 여부", kind:"지정학"}
 ];
+
+// 미국 동아시아 정책 Layer 0.5 (2026-11-22 세션). 방향·맥락용 — 판정 규칙 아님(CONFIG.rules·HANON_PLAN만 판정에 사용).
+// 갱신: 정기 작업 "동아시아 정책 감시"(화·금 21:13 KST). watch[].status: 대기 | 확인 | 발동, falsifiers[].status: 미발동 | 발동
+const GEO_PLAN = {
+  asOf: "2026-11-22",
+  docs: "프로젝트 문서: Layer0.5_동아시아정책_반도체_20261122.md · 동아시아정책_추적로그.md",
+  thesis: [
+    ["틀 [프리드먼]", "미국 = 의도치 않은 제국. 직접 개입 대신 역내 균형자에게 비용 이전. 대상만 일본→중국으로 바뀜: 일본 = 주된 균형자(격상), 한국 = 한반도 담당(역할 축소·비용 증가)"],
+    ["본토화 [추정]", "반도체 = 제국의 핵심 자산. 232조 관세 → 투자 약속(대만 $2,500억+신용보증 $2,500억, 한국 $3,500억) → 무관세 쿼터로 생산능력 일부를 미국에 고정"],
+    ["핵심 가설 [가정]", "미국 본토 첨단 생산능력이 쌓일수록 미국에 대만의 전략 가치 하락 → 협상 카드화 여지 확대. 반론: 생태계 이전 10년+, 의회·관료는 트럼프보다 매파 → 트럼프 임기 중 꼬리 위험으로만 반영"],
+    ["거래 vs 구조 [추정]", "정상 간 거래(11/19 3자 회담, 대만 미언급)와 별개로 제도는 강화(11/16 BIS 제3국·원격접속 규칙, 젠슨 황 사임, 민주당 의회) → 2027년 이후 첨단 통제 강화가 기본 경로"]
+  ],
+  scenarios: [   // 확률 [가정] — 5~10년. 감시 작업은 근거가 있을 때만 바꾸고 추적로그에 사유 기록
+    {k:"A", name:"관리된 경쟁 + 본토화", prob:65, desc:"휴전 단기 연장 반복, 첨단 통제 강화, 관세로 미국 생산 증가", semi:"미국 본토 생산자·설비투자 우호 / 중국 매출 의존 서방 기업 구조적 역풍"},
+    {k:"B", name:"G2 대타협", prob:15, desc:"대만 관련 양보 ↔ 통제 완화 (트럼프 임기 중 꼬리 위험)", semi:"단기 엔비디아 등 중국 매출 회복 / 대만·한국 자산 장기 할인"},
+    {k:"C", name:"대만 위기·봉쇄", prob:20, desc:"Layer 0 Danger Zone과 정합, 시간이 갈수록 상승", semi:"아시아 생산 충격 / 미국 본토 생산능력 희소가치 급등"}
+  ],
+  watch: [       // date = KST. null = 수시·분기 감시
+    {id:"W1", date:"2026-12-15", title:"G20 마이애미 트럼프·시진핑 재회동", signal:"대만 문구·통제 완화 언급 → B↑ / 무소득 → A 유지", status:"대기", result:""},
+    {id:"W2", date:"2026-12-18", title:"마이크론 FQ1 FY27 실적", signal:"2028 계약가·capex·HBM 가격 → 메모리 사이클 지속성(F6)", status:"대기", result:""},
+    {id:"W3", date:"2026-12-26", title:"일본 안보 3문서 개정 (일자 추정)", signal:"대만 유사시·반격능력·방산 → 일본 균형자 공식화(A 강화)", status:"대기", result:""},
+    {id:"W4", date:"2027-01-04", title:"미 120대 의회 개원 (민주당 상·하원)", signal:"수출통제 입법·트럼프 거래 조사 → 첨단 통제 고정(A)", status:"대기", result:""},
+    {id:"W5", date:"2027-01-10", title:"미·중 휴전·희토류 유예 만료", signal:"연장 → A / 결렬 → 관세·희토류 충격", status:"대기", result:""},
+    {id:"W6", date:"2027-01-30", title:"인텔 4Q26 실적 (일자 추정)", signal:"14A 고객 확정·애플 공식화 → 본토 파운드리 테제 검증", status:"대기", result:""},
+    {id:"W7", date:null, title:"232조 2단계·한국 반도체 관세·삼성/SK 미국 추가 투자", signal:"한국 자산 할인 확대 여부", status:"대기", result:""},
+    {id:"W8", date:null, title:"중국 반도체 장비 국산화율 (분기)", signal:"2025말 35% → 연 10%p 지속 시 F4", status:"대기", result:""},
+    {id:"W9", date:null, title:"엔비디아 후임 CEO·대중 판매 정책", signal:"통제 완화 로비 축 약화 여부", status:"대기", result:""},
+    {id:"W10", date:null, title:"대만해협 군사 동향 (봉쇄 훈련·검문)", signal:"C 확률 상향", status:"대기", result:""}
+  ],
+  layers: [      // [층, 정책 영향, 주의, 보유 티커]
+    ["미국 파운드리", "국가 챔피언(정부 9.9%), 14A 고객 확보 진행", "정책 지원 ≠ 이익 · 애플 미확인 · 의회 조사 리스크 · 2026 급등 선반영", "INTC"],
+    ["메모리", "사이클 우호(2027·28 더 타이트) + 미국 유일 메모리", "최대 경기민감 · 한국 업체 미국 증설 = 미래 경쟁 · 2028 이후 공급과잉", "MU"],
+    ["장비·테스트", "본토화 설비투자 수요", "중국 국산화(35%→2027 목표 70%)가 중국 매출 잠식", "TER"],
+    ["레거시·전력반도체", "정책 수혜 최약", "중국 국산화·공급과잉 직격 [추정]", "WOLF"],
+    ["AI 설계", "미국 내 수요 강함", "중국 매출 0 수렴 기본값 · CEO 공석", "SOXL"],
+    ["일본 소재·장비", "균형자 일본의 미국 공급망 통합", "중국의 대일 이중용도 수출통제", ""]
+  ],
+  falsifiers: [
+    {id:"F1", cond:"TSMC·삼성·SK 미국 투자 연기·취소 공식화", means:"본토화 테제 약화", status:"미발동"},
+    {id:"F2", cond:"Blackwell급 이상 대중 판매 허용", means:"B 상향", status:"미발동"},
+    {id:"F3", cond:"미·중 합의문에 대만 관련 미국 입장 변화 문구", means:"B 상향 · 대만·한국 자산 할인", status:"미발동"},
+    {id:"F4", cond:"중국 장비 국산화 연 10%p 속도 지속 확인", means:"장비주 구조적 역풍 확정", status:"미발동"},
+    {id:"F5", cond:"주한미군 감축 공식 발표", means:"한국 할인 확대", status:"미발동"},
+    {id:"F6", cond:"메모리 2028 계약가 전년 대비 하락", means:"메모리 사이클 정점", status:"미발동"}
+  ]
+};
 
 // 한온시스템 분석·매도 계획 (2026-11-08 세션 반영). 규칙(CONFIG.rules / hanonTriggers)은 건드리지 않음.
 // 태그: [실제] 공시·IR·KRX 확인 / [계산] 실제 기반 계산 / [추정] / [가정]
@@ -659,6 +718,26 @@ function renderSemi(P){
     (D.semi.tickers||[]).map(t => '<tr' + (held.has(t.ticker) ? ' style="background:#5B9BD522"' : '') + '><td class="l"><b>' + t.ticker + '</b> <span class="mu">' + esc(t.name) + '</span>' + (held.has(t.ticker) ? ' ' + badge('green','보유') : '') + '</td><td>' + Number(t.price).toLocaleString() + '</td><td class="' + cls(t.d7) + '">' + pct(t.d7) + '</td><td class="' + cls(t.d30) + '">' + pct(t.d30) + '</td><td class="' + cls(t.ytd) + '">' + pct(t.ytd,0) + '</td><td class="' + (t.offHigh52w <= CONFIG.semiAlerts.offHighFlag ? 'dn' : 'mu') + '">' + pct(t.offHigh52w) + '</td><td>' + (t.shortPctFloat != null ? Number(t.shortPctFloat).toFixed(2) + '%' : '—') + '</td></tr>').join('') + '</table>';
 }
 
+function renderGeo(P){
+  const G = GEO_PLAN;
+  const dTo = s => daysBetween(today, parseD(s));
+  const held = new Set(HOLDINGS.filter(h => h.status === 'held').map(h => h.ticker));
+  const stB = s => s === '발동' ? badge('red','발동') : (s === '확인' ? badge('green','확인') : badge('gray', s || '대기'));
+  document.getElementById('geoScen').innerHTML =
+    '<table><tr><th>항목</th><th>내용</th></tr>' + G.thesis.map(r => '<tr><td class="c">' + esc(r[0]) + '</td><td class="l small">' + esc(r[1]) + '</td></tr>').join('') + '</table>' +
+    '<table style="margin-top:8px"><tr><th>시나리오 (5~10년)</th><th>확률 [가정]</th><th>내용</th><th>반도체 함의</th></tr>' +
+    G.scenarios.map(s => '<tr><td class="c"><b>' + esc(s.k) + '</b> ' + esc(s.name) + '</td><td class="c">' + s.prob + '%</td><td class="l small">' + esc(s.desc) + '</td><td class="l small">' + esc(s.semi) + '</td></tr>').join('') + '</table>' +
+    '<div class="small" style="margin-top:6px">' + esc(G.asOf) + ' 기준 · ' + esc(G.docs) + ' · 방향·맥락용이며 매수·매도 판정 규칙이 아니다.</div>';
+  const W = [...G.watch].sort((a,b) => (a.date||'9999').localeCompare(b.date||'9999'));
+  document.getElementById('geoWatch').innerHTML = '<table><tr><th>ID</th><th>날짜</th><th>D-day</th><th>이벤트</th><th>볼 신호 → 시나리오</th><th>상태</th><th>결과</th></tr>' +
+    W.map(w => { const d = w.date ? dTo(w.date) : null; return '<tr' + (d != null && d >= 0 && d <= 14 ? ' style="background:#C9A84C1A"' : '') + '><td class="c">' + w.id + '</td><td class="c">' + (w.date || '수시') + '</td><td class="c">' + (d == null ? '—' : (d >= 0 ? 'D-' + d : '지남')) + '</td><td class="l">' + esc(w.title) + '</td><td class="l small">' + esc(w.signal) + '</td><td class="c">' + stB(w.status) + '</td><td class="l small">' + esc(w.result || '') + '</td></tr>'; }).join('') + '</table>';
+  document.getElementById('geoLayer').innerHTML = '<table><tr><th>층</th><th>정책 영향</th><th>주의</th><th>보유</th></tr>' +
+    G.layers.map(l => '<tr><td class="c">' + esc(l[0]) + '</td><td class="l small">' + esc(l[1]) + '</td><td class="l small">' + esc(l[2]) + '</td><td class="c">' + (l[3] ? esc(l[3]) + (held.has(l[3]) ? ' ' + badge('green','보유') : '') : '—') + '</td></tr>').join('') + '</table>' +
+    '<table style="margin-top:8px"><tr><th>ID</th><th>반증 신호</th><th>의미</th><th>상태</th></tr>' +
+    G.falsifiers.map(f => '<tr><td class="c">' + f.id + '</td><td class="l">' + esc(f.cond) + '</td><td class="l small">' + esc(f.means) + '</td><td class="c">' + stB(f.status) + '</td></tr>').join('') + '</table>' +
+    '<div class="small" style="margin-top:6px">수혜가 가장 확실한 것은 종목이 아니라 \'미국 본토 생산능력\'이라는 층. 투자자문 아님.</div>';
+}
+
 function renderHanon(P){
   const H = hanon();
   if(!H){ document.getElementById('p2note').textContent = 'KRX 대시보드 로드 실패: ' + (D.err.krx||''); renderHanonPlan(null); return; }
@@ -807,7 +886,7 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
 (async function(){
   await loadAll();
   const P = portfolio();
-  const steps = [renderOverview, renderSemi, renderHanon, renderMacro, renderRisk, renderLease, renderHold];
+  const steps = [renderOverview, renderSemi, renderGeo, renderHanon, renderMacro, renderRisk, renderLease, renderHold];
   steps.forEach(f => { try { f(P); } catch(e) { console.error(f.name, e); } });
 })();
 </script>
