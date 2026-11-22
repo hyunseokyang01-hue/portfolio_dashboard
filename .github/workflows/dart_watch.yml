@@ -1,0 +1,45 @@
+name: DART watch
+
+on:
+  schedule:
+    - cron: '15 23 * * 0-4'          # 월~금 08:15 KST
+    - cron: '15 1-11/2 * * 1-5'      # 월~금 10:15~20:15 KST, 2시간 간격
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: dart-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check DART
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: python dart_watch.py
+      - name: Open issue for new filings
+        if: hashFiles('dart_alert.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -s dart_alert.md ]; then
+            title=$(head -1 dart_alert.md)
+            tail -n +2 dart_alert.md > body.md
+            gh label create dart --color C9A84C --force >/dev/null 2>&1 || true
+            gh issue create --title "$title" --body-file body.md --label dart
+          fi
+      - name: Commit seen state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898989+github-actions[bot]@users.noreply.github.com"
+          git add dart_seen.json
+          git diff --cached --quiet || (git commit -m "chore: dart seen" && git pull --rebase -X theirs && git push)
