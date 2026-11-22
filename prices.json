@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-11-21 12:09 UTC",
+ "updatedAt": "2026-11-22 06:49 UTC",
  "source": "Yahoo Finance via yfinance",
  "prices": {
   "INTC": {
@@ -58,9 +58,9 @@
    "chg": -14.5
   },
   "KRW=X": {
-   "price": 1334.79,
-   "date": "20261120",
-   "chg": 0.33
+   "price": 1337.8,
+   "date": "20261122",
+   "chg": 0.23
   },
   "EURKRW=X": {
    "price": 1462.41,
